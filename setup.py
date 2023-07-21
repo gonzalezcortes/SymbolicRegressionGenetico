@@ -4,7 +4,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '0.0.1'
+__version__ = '1.0.0'
 
 
 def add_init_pybind11(cls):
@@ -18,7 +18,7 @@ def add_init_pybind11(cls):
 
 ext_modules = [
     Extension(
-        'example_1',
+        'GeneticAlgorithm',
         ['src/example_1.cpp'],
         include_dirs=[],
         language='c++'

@@ -11,7 +11,7 @@ double suma(double x, double y) {
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(example_1, m) {
+PYBIND11_MODULE(GeneticAlgorithm, m) {
     m.def("suma", &suma, "A function that sums to elemets");
 }
 
