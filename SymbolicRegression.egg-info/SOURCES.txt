@@ -1,0 +1,8 @@
+setup.py
+SymbolicRegression.egg-info/PKG-INFO
+SymbolicRegression.egg-info/SOURCES.txt
+SymbolicRegression.egg-info/dependency_links.txt
+SymbolicRegression.egg-info/not-zip-safe
+SymbolicRegression.egg-info/requires.txt
+SymbolicRegression.egg-info/top_level.txt
+src/example_1.cpp
