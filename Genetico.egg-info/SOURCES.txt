@@ -1,16 +1,9 @@
 README.md
 setup.py
-Genetico.egg-info/PKG-INFO
-Genetico.egg-info/SOURCES.txt
-Genetico.egg-info/dependency_links.txt
-Genetico.egg-info/not-zip-safe
-Genetico.egg-info/requires.txt
-Genetico.egg-info/top_level.txt
 genetico.egg-info/PKG-INFO
 genetico.egg-info/SOURCES.txt
 genetico.egg-info/dependency_links.txt
 genetico.egg-info/not-zip-safe
 genetico.egg-info/requires.txt
 genetico.egg-info/top_level.txt
-src/example_1.cpp
-src/example_2.cpp
+src/genetic_SR.cpp

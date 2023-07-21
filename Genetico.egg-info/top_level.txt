@@ -1,2 +1,1 @@
-GeneticAlgorithm
-GeneticAlgorithm2
+genetico
