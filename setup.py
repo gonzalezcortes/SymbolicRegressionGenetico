@@ -4,7 +4,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '1.0.0'
+__version__ = '0.0.1'
 
 
 def add_init_pybind11(cls):
@@ -26,7 +26,7 @@ ext_modules = [
 ]
 
 setup(
-    name='SymbolicRegression',
+    name='Genetico',
     version=__version__,
     author='Daniel Gonzalez Cortes',
     author_email='',
