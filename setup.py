@@ -22,6 +22,12 @@ ext_modules = [
         ['src/genetic_SR.cpp'],
         include_dirs=[],
         language='c++'
+    ),
+       Extension(
+        'genetico.metrics',
+        ['src/metrics.cpp'],
+        include_dirs=[],
+        language='c++'
     )
 ]
 

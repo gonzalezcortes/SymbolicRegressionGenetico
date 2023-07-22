@@ -7,3 +7,4 @@ genetico.egg-info/not-zip-safe
 genetico.egg-info/requires.txt
 genetico.egg-info/top_level.txt
 src/genetic_SR.cpp
+src/metrics.cpp
