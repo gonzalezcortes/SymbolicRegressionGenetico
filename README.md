@@ -8,3 +8,12 @@ The results can be process in Python taking advantage of the versatility of Pyth
 Install the package: pip install git+https://github.com/gonzalezcortes/Genetic-Algorithm.git#egg=genetico
 
 pip show genetico
+
+<h2> External libraries </h2>
+
+<ul>
+	<li> C++  Mathematical  Expression  Toolkit  Library (exprtk)</li>
+	<li> Numpy </li>
+	<li> Matplotlib </li>
+</ul>
+

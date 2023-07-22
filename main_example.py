@@ -14,7 +14,11 @@ print(f"Generated expression: {expr}")
 
 # Create an initial population
 pop = gsp.create_initial_population(10, 3)
-print(f"Initial population: {pop}")
+#print(f"Initial population: {pop}")
+
+
+for i in range(10):
+    print(pop[i])
 
 # Evaluate an expression
-value = gsp.evaluateFX(expr, 3)
+###value = gsp.evaluateFX(expr, 3)

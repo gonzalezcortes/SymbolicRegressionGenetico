@@ -23,8 +23,6 @@ ext_modules = [
         include_dirs=[],
         language='c++'
     )
-
-       
 ]
 
 setup(
