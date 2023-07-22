@@ -24,4 +24,6 @@ for expr in expressions:
     value = gsp.evaluate_fx(expr, x)
     mse_1 = metrics.mse(y, value)
     print(f'expression {expr} mse_1: {mse_1}')
+
+print(gsp.modify_binary_operators(expr))
     
