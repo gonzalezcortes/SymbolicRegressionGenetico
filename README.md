@@ -1,4 +1,4 @@
-Symbolic Regression Genetico
+<h1> Symbolic Regression Genetico </h1>
 
 This is a custom package to implement the Symbolic Regression with genetic algorithm and other algorithms in Python and C++. The data is load it in Python while the Genetic algorithm is process in C++ to take advantage of its speed. 
 
