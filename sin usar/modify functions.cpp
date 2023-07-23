@@ -1,5 +1,5 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+//#include <pybind11/pybind11.h>
+//#include <pybind11/stl.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -8,11 +8,11 @@
 #include <sstream>
 
 #include "./external/exprtk.hpp"
-#include "metrics.cpp" // metric from mse
 
 std::vector<std::string> binary_operators = { "+", "-", "*", "/" };
 std::vector<std::string> unary_operators = { "sin", "cos" , "exp"};
-std::vector<std::string> terminals = { "x", "1", "2", "3" };
+std::vector<std::string> terminals = { "y", "1", "2", "3" };
+
 
 
 int random_int(int min, int max) {
@@ -37,46 +37,8 @@ std::string generate_random_expr(int depth) {
     }
 }
 
-// Function to create an initial population
-std::vector<std::string> create_initial_population(int pop_size, int depth) {
-    std::vector<std::string> population;
-    for (int i = 0; i < pop_size; i++) {
-        population.push_back(generate_random_expr(depth));
-    }
-    return population;
-}
 
-// Function to evaluate an expression
-std::vector<double> evaluate_fx(std::string expression_str, std::vector<double> x_values) {
-    double x;
 
-    exprtk::symbol_table<double> symbol_table;
-    symbol_table.add_variable("x", x);
-    exprtk::expression<double> expression;
-    exprtk::parser<double> parser;
-
-    int n = x_values.size();
-    std::vector<double> evaluation_vector;
-    evaluation_vector.reserve(n);
-
-    expression.register_symbol_table(symbol_table);
-    if (parser.compile(expression_str, expression))
-    {
-        for (double x_value : x_values) {
-            x = x_value;
-            double result = expression.value();
-            // std::cout << "The result of the expression for x = " << x << " is: " << result << std::endl;
-            evaluation_vector.push_back(result);
-        }
-        return evaluation_vector;
-    }
-    else {
-        std::cout << "There is an error in the evaluation of the function " << expression_str << std::endl;
-    }
-    
-}
-
-// Function to modify expression (binary and unary operators and terminals)
 std::string modify_expression(std::string expr) {
     //////////////////////
     // binary_operators //
@@ -96,7 +58,7 @@ std::string modify_expression(std::string expr) {
     // unary_operators //
     //////////////////////
     int n_unary_operators = 3;
-    indexToSearch = rand() % n_unary_operators;
+    indexToSearch = rand()%n_unary_operators;
     toSearch = unary_operators[indexToSearch];
 
     indexReplace = rand() % n_unary_operators;
@@ -125,7 +87,6 @@ std::string modify_expression(std::string expr) {
     return expr;
 }
 
-// Add term left
 std::string add_term_left(std::string expr) {
     // Generate a new term with depth 1 (either a unary operation or a simple binary operation)
     std::string new_term = generate_random_expr(1);
@@ -133,10 +94,9 @@ std::string add_term_left(std::string expr) {
     // Add the new term to the existing expression using a random operator
     std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
 
-    return "(" + new_term + " " + op + " " + expr + ")";
+    return "(" + new_term + " " + op + " " +  expr + ")";
 }
 
-// Add term right
 std::string add_term_right(std::string expr) {
     // Generate a new term with depth 1 (either a unary operation or a simple binary operation)
     std::string new_term = generate_random_expr(1);
@@ -147,17 +107,40 @@ std::string add_term_right(std::string expr) {
     return "(" + expr + " " + op + " " + new_term + ")";
 }
 
+int main(){
+
+    std::string expressions;
+    std::string exp_1 = "(y + 3)";
+    std::string exp_2 = "(y + 3) + sin(3) + cos(3)";
+    std::string exp_3;
+    std::string exp_4;
+    std::string exp_5;
+
+    expressions = generate_random_expr(3);
+    std::cout << expressions << std::endl;
+    srand(static_cast<unsigned int>(time(0))); // Seed random number generator
+
+    std::cout << "Original: " << exp_1 << std::endl;
 
 
-namespace py = pybind11;
+    std::cout << "Modify: " << modify_expression(exp_1) << std::endl;
 
-PYBIND11_MODULE(geneticSymbolicRegression, m) {
-    m.def("generate_random_expr", &generate_random_expr, "A function that generates expressions");
-    m.def("create_initial_population", &create_initial_population, "A function to create an initial population");
 
-    m.def("evaluate_fx", &evaluate_fx, "A function to evaluate an expression");
-    m.def("modify_expression", &modify_expression, "a function to modify expressions");
+    for (int i; i<1000; i++){
+        std::cout << "--start--" << std::endl;
+        std::cout << exp_2 << std::endl;
+        exp_3 = modify_expression(exp_2);
+        std::cout << exp_3 << std::endl;
+        exp_4 = add_term_left(exp_3);
+        std::cout << exp_4 << std::endl;
+        exp_5 = add_term_right(exp_4);
+        std::cout << exp_5 << std::endl;
+        std::cout << modify_expression(exp_5) << std::endl;
+        std::cout << "--end--" << std::endl;
+    }
 
-    m.def("add_term_left", &add_term_left, "a function to add term in the left side of the expression");
-    m.def("modify_expression", &add_term_right, "a function to add term in the right side of the expression");
+    return 0;
+
+
+
 }
