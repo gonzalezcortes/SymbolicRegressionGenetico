@@ -6,6 +6,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <sstream>
+#include <algorithm>
 
 #include "./external/exprtk.hpp"
 #include "metrics.cpp" // metric from mse
@@ -72,6 +73,7 @@ std::vector<double> evaluate_fx(std::string expression_str, std::vector<double> 
     }
     else {
         std::cout << "There is an error in the evaluation of the function " << expression_str << std::endl;
+        return std::vector<double>();
     }
     
 }
@@ -147,6 +149,39 @@ std::string add_term_right(std::string expr) {
     return "(" + expr + " " + op + " " + new_term + ")";
 }
 
+std::vector<std::pair<double, std::string>> get_best_expressions(std::vector<std::string> expressions, double elite_perc,
+    std::string metric, std::vector<double> x_values, std::vector<double> y_values) {
+
+    std::vector<std::pair<double, std::string>> mse_and_expression; // mse and expressions
+    std::vector<std::pair<double, std::string>> elite_expressions;
+    double mse_score;
+
+    for (const auto& expr : expressions) {
+        std::vector<double> scores = evaluate_fx(expr, x_values);
+        
+        mse_score = mse(scores, y_values);
+
+        // std::cout << mse_score << std::endl;
+        mse_and_expression.emplace_back(mse_score, expr);
+    }
+
+    std::sort(mse_and_expression.begin(), mse_and_expression.end());
+
+    size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * mse_and_expression.size()));
+    
+    elite_expressions.reserve(elite_count);
+    for (size_t i = 0; i < elite_count; ++i) {
+        elite_expressions.push_back(mse_and_expression[i]);
+    }
+
+    return elite_expressions;
+}
+
+std::string merge_expressions(const std::string& expr1, const std::string& expr2) {
+    size_t midpoint1 = expr1.find_last_of(')');
+    size_t midpoint2 = expr2.find_first_of('(');
+    return expr1.substr(0, midpoint1 + 1) + expr2.substr(midpoint2);
+}
 
 
 namespace py = pybind11;
@@ -160,4 +195,6 @@ PYBIND11_MODULE(geneticSymbolicRegression, m) {
 
     m.def("add_term_left", &add_term_left, "a function to add term in the left side of the expression");
     m.def("modify_expression", &add_term_right, "a function to add term in the right side of the expression");
+    m.def("get_best_expressions", &get_best_expressions, "function to get the best expression in terms of a given metric");
+    m.def("merge_expressions", &merge_expressions, "function that takes some parts of a function and merge them");
 }
