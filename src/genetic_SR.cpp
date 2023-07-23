@@ -34,7 +34,7 @@ std::string generate_random_expr(int depth) {
         }
     }
     else {
-        return terminals[random_int(0, terminals.size() - 1)];
+        return "(" + terminals[random_int(0, terminals.size() - 1)] + ")";
     }
 }
 
