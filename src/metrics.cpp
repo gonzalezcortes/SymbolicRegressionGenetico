@@ -1,8 +1,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <iostream>
 #include <vector>
 #include <cmath>
 #include <stdexcept>
+#include <limits>
 
 double mse(const std::vector<double>& targets, const std::vector<double>& predictions) {
     if (predictions.size() != targets.size()) {
@@ -16,7 +18,14 @@ double mse(const std::vector<double>& targets, const std::vector<double>& predic
     }
 
     double mse = sum / predictions.size();
+
+    if (std::isnan(mse)) {
+        mse = std::numeric_limits<double>::infinity();
+            }
+    
     return mse;
+
+    
 }
 
 namespace py = pybind11;

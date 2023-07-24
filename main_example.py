@@ -5,49 +5,31 @@ from genetico import geneticSymbolicRegression as gsp
 from genetico import metrics 
 
 ###### First Equation to test ######
-x = np.linspace(0, 3*np.pi, num=201)
-y = np.sin(2*x+x) + np.cos(x)
+#x = np.linspace(0, 3*np.pi, num=201)
+#y = np.sin(2*x+x) + np.cos(x)
 
-pop_size = 10000
-depth = 5
-
-x_s =  list([1,2,3,4,5,6,7,8,0])
-
-single_expr = gsp.generate_random_expr(3)
-
-# Create an initial population
-expressions = gsp.create_initial_population(100, 3)
-#print(f"Initial population: {pop}")
-print(expressions[0])
-generations = 10
-for gen in range(generations):
-    best_expressions = gsp.get_best_expressions(expressions,0.10,"mse", x, y)
-
-for i in range(99):
-    combined_expr = gsp.merge_expressions(expressions[i],expressions[i+1])
-    combined_values = gsp.evaluate_fx(combined_expr, x)
-    mse_c = metrics.mse(y, combined_values)
-    print(mse_c)
+t0 = time.time()
+x = np.linspace(0, 4*np.pi, num=201)
+y = np.sin(x) + np.cos(x + x) + np.random.normal(scale=0.2, size=201)
 
 
+# Get initial values
+population_size = 100
+depth = 3
+generations = 1000
+elite_perc = 0.10
+mutation_prob = 0.10
+grow_prob = 0.01
+metric = "mse"
 
-# Evaluate an expression
-slowestMSE = float('inf')
-for expr in expressions:
-    values = gsp.evaluate_fx(expr, x)
-    
-    mse_1 = metrics.mse(y, values)
-    ##print(f'expression {expr} mse_1: {mse_1}')
+sorted_expressions_1 = gsp.genetic_training(population_size, depth, generations, metric, elite_perc, mutation_prob, grow_prob, x, y)
 
-    if mse_1 < slowestMSE:
-        slowestMSE = mse_1
-        slowestExpr = expr
-        y1 = values
-    
-print(f"Slowest MSE is {slowestMSE} with expression {slowestExpr}")
+y2 =  gsp.evaluate_fx(sorted_expressions_1[0][1], x)
+print("Expression ", sorted_expressions_1[0][1], "mse ", metrics.mse(y2,y))
+print(time.time()-t0)
 
 ### Plot ###
 plt.plot(x,y, label = "target")
-plt.plot(x,y1, label = "predicted")
+plt.plot(x,y2, label = "predicted")
 plt.legend()
 plt.show()

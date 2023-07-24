@@ -7,13 +7,14 @@
 #include <cstdlib>
 #include <sstream>
 #include <algorithm>
+#include <limits>
 
 #include "./external/exprtk.hpp"
 #include "metrics.cpp" // metric from mse
 
 std::vector<std::string> binary_operators = { "+", "-", "*", "/" };
 std::vector<std::string> unary_operators = { "sin", "cos" , "exp"};
-std::vector<std::string> terminals = { "x", "1", "2", "3" };
+std::vector<std::string> terminals = { "X", "1", "2", "3" };
 
 
 int random_int(int min, int max) {
@@ -52,7 +53,7 @@ std::vector<double> evaluate_fx(std::string expression_str, std::vector<double> 
     double x;
 
     exprtk::symbol_table<double> symbol_table;
-    symbol_table.add_variable("x", x);
+    symbol_table.add_variable("X", x);
     exprtk::expression<double> expression;
     exprtk::parser<double> parser;
 
@@ -66,6 +67,12 @@ std::vector<double> evaluate_fx(std::string expression_str, std::vector<double> 
         for (double x_value : x_values) {
             x = x_value;
             double result = expression.value();
+            
+            // check for nan
+            if (std::isnan(result)) {
+                result = std::numeric_limits<double>::infinity();
+            }
+
             // std::cout << "The result of the expression for x = " << x << " is: " << result << std::endl;
             evaluation_vector.push_back(result);
         }
@@ -149,7 +156,7 @@ std::string add_term_right(std::string expr) {
     return "(" + expr + " " + op + " " + new_term + ")";
 }
 
-std::vector<std::pair<double, std::string>> get_best_expressions(std::vector<std::string> expressions, double elite_perc,
+std::vector<std::pair<double, std::string>> sorted_expressions(std::vector<std::string> expressions,
     std::string metric, std::vector<double> x_values, std::vector<double> y_values) {
 
     std::vector<std::pair<double, std::string>> mse_and_expression; // mse and expressions
@@ -167,11 +174,18 @@ std::vector<std::pair<double, std::string>> get_best_expressions(std::vector<std
 
     std::sort(mse_and_expression.begin(), mse_and_expression.end());
 
-    size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * mse_and_expression.size()));
-    
+    return mse_and_expression;
+   
+}
+
+std::vector<std::string> get_elite(std::vector<std::pair<double, std::string>> sorted_expressions, double elite_perc) {
+
+    std::vector<std::string> elite_expressions;
+    size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * sorted_expressions.size()));
+
     elite_expressions.reserve(elite_count);
     for (size_t i = 0; i < elite_count; ++i) {
-        elite_expressions.push_back(mse_and_expression[i]);
+        elite_expressions.push_back(sorted_expressions[i].second); // Get the string part of the pair
     }
 
     return elite_expressions;
@@ -180,8 +194,120 @@ std::vector<std::pair<double, std::string>> get_best_expressions(std::vector<std
 std::string merge_expressions(const std::string& expr1, const std::string& expr2) {
     size_t midpoint1 = expr1.find_last_of(')');
     size_t midpoint2 = expr2.find_first_of('(');
-    return expr1.substr(0, midpoint1 + 1) + expr2.substr(midpoint2);
+
+    std::string merged_expr = expr1.substr(0, midpoint1 + 1) + expr2.substr(midpoint2);
+
+    size_t merge_point = expr1.substr(0, midpoint1 + 1).size();
+
+    int n_binary_operators = 4;
+    int indexReplace = rand() % n_binary_operators;
+    std::string replaceStr = binary_operators[indexReplace];
+
+    if (merged_expr[merge_point - 1] == ')' && merged_expr[merge_point] == '(') {
+        
+        merged_expr.insert(merge_point, replaceStr);
+    }
+    return merged_expr;
 }
+
+std::vector<std::string> cross_expressions(const std::vector<std::string>& elite_expressions) {
+    std::vector<std::string> crossed_expressions;
+    int loop_limit = elite_expressions.size() - 1;
+
+    for (int i = 0; i < loop_limit; i++) {
+        std::string crossed_expr = merge_expressions(elite_expressions[i], elite_expressions[i + 1]);
+        crossed_expressions.push_back(crossed_expr);
+    }
+
+    return crossed_expressions;
+}
+
+
+std::vector<std::string> get_new_population(std::vector<std::string>& crossed_expressions, std::vector<std::string>& elite_expressions, int population_size, int depth) {
+    
+    std::vector<std::string> new_expressions;
+    new_expressions.reserve(population_size);
+
+
+    // elite expressions
+    for (const auto& elite_expr : elite_expressions) {
+        new_expressions.push_back(elite_expr);
+    }
+
+    // crossed over expressions
+    for (const auto& crossed_expr : crossed_expressions) {
+        new_expressions.push_back(crossed_expr);
+    }
+
+    //  new random expressions
+    while (new_expressions.size() < population_size) {
+        new_expressions.push_back(generate_random_expr(depth));
+    }
+
+    return new_expressions;
+}
+
+std::vector<std::string> mutation(const std::vector<std::string>& expressions, double mutation_prob, double elite_perc, double grow_prob) {
+    
+    int population_size = expressions.size();
+    std::vector<std::string> new_expressions;
+    new_expressions.reserve(population_size);
+    std::string mutated_expr;
+
+    // Do not touch elite expressions
+    size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * expressions.size()));
+    for (size_t i = 0; i < elite_count; ++i) {
+        new_expressions.push_back(expressions[i]);
+    }
+
+    // Apply mutation with a certain probability
+    for (size_t i = elite_count; i < population_size; ++i) {
+        double rand_prob = ((double)rand() / (RAND_MAX));
+
+        // mutation if prob is lower than mutation_prob
+        if (rand_prob < mutation_prob) {
+            mutated_expr = modify_expression(expressions[i]);
+            new_expressions.push_back(mutated_expr);
+        }
+        else if(rand_prob < grow_prob){
+            if ((double)rand() / (RAND_MAX) < 0.5) {
+                mutated_expr = add_term_left(expressions[i]);
+                new_expressions.push_back(mutated_expr);
+            }
+            else {
+                mutated_expr = add_term_right(expressions[i]);
+                new_expressions.push_back(mutated_expr);
+            }
+        }
+        else {
+            new_expressions.push_back(expressions[i]);
+        }
+    }
+    return new_expressions;
+}
+
+std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc, double mutation_prob, double grow_prob,
+    
+    std::vector<double> x_values, std::vector<double> y_values) {
+    std::vector<std::string> expressions = create_initial_population(population_size, depth);
+    std::vector<std::pair<double, std::string>> sorted_expressions_vec;
+
+    for (int gen = 0; gen < generations; gen++) {
+
+        sorted_expressions_vec = sorted_expressions(expressions, metric, x_values, y_values);
+        std::vector<std::string> elite = get_elite(sorted_expressions_vec, elite_perc);
+        std::vector<std::string> cross_elite = cross_expressions(elite);
+
+        std::vector<std::string> new_population = get_new_population(elite, cross_elite, population_size, depth);
+        std::vector<std::string> mutated_new_population = mutation(new_population, mutation_prob, elite_perc, grow_prob);
+
+        expressions = mutated_new_population;
+    }
+    std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions(expressions, metric, x_values, y_values);
+    return final_expression_vec;
+}
+
+
 
 
 namespace py = pybind11;
@@ -195,6 +321,12 @@ PYBIND11_MODULE(geneticSymbolicRegression, m) {
 
     m.def("add_term_left", &add_term_left, "a function to add term in the left side of the expression");
     m.def("modify_expression", &add_term_right, "a function to add term in the right side of the expression");
-    m.def("get_best_expressions", &get_best_expressions, "function to get the best expression in terms of a given metric");
+    m.def("sorted_expressions", &sorted_expressions, "function to get the sorted expression in terms of a given metric");
     m.def("merge_expressions", &merge_expressions, "function that takes some parts of a function and merge them");
+    m.def("get_elite", &get_elite, "function to get elite");
+    m.def("cross_expressions", &cross_expressions, "function to create cross_expressions");
+    m.def("get_new_population", &get_new_population, "function to create a new population merging elite, crossed expr and new expressions");
+    m.def("mutation", &mutation, "function to create a mutated population of crossed expr with a given probability");
+    m.def("genetic_training", &genetic_training, "function that runs the training of the symbolic regression using genetic training");
+
 }
