@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <limits>
 
+
+
 #include "./external/exprtk.hpp"
 #include "metrics.cpp" // metric from mse
 
@@ -280,11 +282,34 @@ std::vector<std::string> mutation(const std::vector<std::string>& expressions, d
             }
         }
         else {
+            // mutated_expr = expressions[i];
             new_expressions.push_back(expressions[i]);
         }
+
+        // std::cout << mutated_expr << std::endl;
     }
+
+   
     return new_expressions;
 }
+
+
+std::string simplify_expr(const std::string& expr) {
+
+    return "";
+}
+
+
+std::vector<std::string> simplify_all_expr(const std::vector<std::string>& exprs) {
+    std::vector<std::string> result;
+    for (const auto& expr : exprs) {
+        
+        result.push_back(simplify_expr(expr));
+        // std::cout << expr << simplify_expr(expr) << std::endl;
+    }
+    return result;
+}
+
 
 std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc, double mutation_prob, double grow_prob,
     
@@ -301,12 +326,12 @@ std::vector<std::pair<double, std::string>> genetic_training(int population_size
         std::vector<std::string> new_population = get_new_population(elite, cross_elite, population_size, depth);
         std::vector<std::string> mutated_new_population = mutation(new_population, mutation_prob, elite_perc, grow_prob);
 
+        //expressions = simplify_all_expr(mutated_new_population);
         expressions = mutated_new_population;
     }
     std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions(expressions, metric, x_values, y_values);
     return final_expression_vec;
 }
-
 
 
 
@@ -320,13 +345,19 @@ PYBIND11_MODULE(geneticSymbolicRegression, m) {
     m.def("modify_expression", &modify_expression, "a function to modify expressions");
 
     m.def("add_term_left", &add_term_left, "a function to add term in the left side of the expression");
-    m.def("modify_expression", &add_term_right, "a function to add term in the right side of the expression");
+    m.def("add_term_right", &add_term_right, "a function to add term in the right side of the expression");
+
     m.def("sorted_expressions", &sorted_expressions, "function to get the sorted expression in terms of a given metric");
     m.def("merge_expressions", &merge_expressions, "function that takes some parts of a function and merge them");
+
     m.def("get_elite", &get_elite, "function to get elite");
     m.def("cross_expressions", &cross_expressions, "function to create cross_expressions");
+
     m.def("get_new_population", &get_new_population, "function to create a new population merging elite, crossed expr and new expressions");
     m.def("mutation", &mutation, "function to create a mutated population of crossed expr with a given probability");
+
     m.def("genetic_training", &genetic_training, "function that runs the training of the symbolic regression using genetic training");
 
+    m.def("simplify_expr", &simplify_expr, "function simplify expr");
+    m.def("simplify_all_expr", &simplify_all_expr, "function simplify all the expr of an array");
 }

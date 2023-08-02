@@ -1,0 +1,31 @@
+int main() {
+    std::string rpn_expression;
+    //std::cout << "Enter a Reverse Polish Notation expression: ";
+    //std::getline(std::cin, rpn_expression);
+
+    //std::istringstream expression_stream(rpn_expression);
+    //double result = evaluateRPN2(expression_stream);
+    //std::cout << "Result: " << result << std::endl;
+
+    // infix
+    std::string infix_expression;
+    std::cout << "Enter an infix expression: ";
+    std::getline(std::cin, infix_expression);
+
+    std::istringstream expression_stream(infix_expression);
+    std::vector<std::string> rpn = infixToRPN(expression_stream);
+
+    std::cout << "RPN expression: ";
+    for (const auto &token : rpn) {
+        std::cout << token << " ";
+    };
+
+    std::cout << "\n" << std::endl;
+
+    double result = evaluateRPN(rpn);
+
+    std::cout << "Result: " << result << std::endl;
+
+    return 0;
+
+}
