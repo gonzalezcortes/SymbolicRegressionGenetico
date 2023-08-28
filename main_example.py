@@ -18,7 +18,7 @@ y = np.sin(x) + np.exp((3*x)/2) + np.cos(x + x) + np.random.normal(scale=0.2, si
 # Get initial values
 population_size = 100
 depth = 3
-generations = 100
+generations = 2 #100
 elite_perc = 0.10
 mutation_prob = 0.10
 grow_prob = 0.01 #0.001

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <vector>
+#include <regex>
 
 
 
@@ -216,7 +217,15 @@ int main() {
     std::cout << "Enter an infix expression: ";
     std::getline(std::cin, infix_expression);
 
+
+
+    // la solucion no funciona
     std::string spaced_expression = addSpacesToInfix(infix_expression);
+    spaced_expression = std::regex_replace(spaced_expression, std::regex("\\-\\s*\\d"), "0 $&");  // $& refers to the entire matched expression
+
+    std::cout << spaced_expression << std::endl;
+
+    // std::string spaced_expression = addSpacesToInfix(infix_expression);
     std::istringstream expression_stream(spaced_expression);
 
     // std::istringstream expression_stream(infix_expression);
