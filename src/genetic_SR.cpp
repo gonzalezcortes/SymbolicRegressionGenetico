@@ -294,21 +294,6 @@ std::vector<std::string> mutation(const std::vector<std::string>& expressions, d
 }
 
 
-std::string simplify_expr(const std::string& expr) {
-
-    return "";
-}
-
-
-std::vector<std::string> simplify_all_expr(const std::vector<std::string>& exprs) {
-    std::vector<std::string> result;
-    for (const auto& expr : exprs) {
-        
-        result.push_back(simplify_expr(expr));
-        // std::cout << expr << simplify_expr(expr) << std::endl;
-    }
-    return result;
-}
 
 
 std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc, double mutation_prob, double grow_prob,
@@ -358,6 +343,4 @@ PYBIND11_MODULE(geneticSymbolicRegression, m) {
 
     m.def("genetic_training", &genetic_training, "function that runs the training of the symbolic regression using genetic training");
 
-    m.def("simplify_expr", &simplify_expr, "function simplify expr");
-    m.def("simplify_all_expr", &simplify_all_expr, "function simplify all the expr of an array");
 }

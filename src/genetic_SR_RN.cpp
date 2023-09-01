@@ -337,7 +337,7 @@ std::vector<std::pair<double, std::string>> genetic_training(int population_size
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(geneticSymbolicRegression, m) {
+PYBIND11_MODULE(geneticSymbolicRegressionRN, m) {
     m.def("generate_random_expr", &generate_random_expr, "A function that generates expressions");
     m.def("create_initial_population", &create_initial_population, "A function to create an initial population");
 
