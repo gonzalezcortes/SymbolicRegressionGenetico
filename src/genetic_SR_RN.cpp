@@ -14,6 +14,8 @@
 #include "./external/exprtk.hpp"
 #include "metrics.cpp" // metric from mse
 
+#include "reverseNotation.cpp"
+
 std::vector<std::string> binary_operators = { "+", "-", "*", "/" };
 std::vector<std::string> unary_operators = { "sin", "cos" , "exp"};
 std::vector<std::string> terminals = { "X", "1", "2", "3" };
@@ -86,6 +88,53 @@ std::vector<double> evaluate_fx(std::string expression_str, std::vector<double> 
     }
     
 }
+
+std::vector<std::string> evaluate_fx_RPN(std::string expression_str, std::vector<double> x_values) {
+    std::vector<std::string> replaced_expressions;
+
+    for (double x_value : x_values) {
+        std::cout << "Original: " << expression_str << std::endl;
+        
+        std::string replaced_str = expression_str;
+        std::string x_str = "X"; // Make sure this is consistent with what's in your expression
+        std::string x_value_str = std::to_string(x_value);
+
+        size_t pos = 0;
+        while ((pos = replaced_str.find(x_str, pos)) != std::string::npos) {
+            replaced_str.replace(pos, x_str.length(), x_value_str);
+            pos += x_value_str.length(); // Move pos beyond the newly inserted string
+        }
+
+        replaced_expressions.push_back(replaced_str);
+
+        std::cout << "Replaced: " << replaced_str << std::endl;
+
+        ////////*************************
+        //////////***************
+        ///change the function to receive a string
+        std::string infix = addSpaces(replaced_str);///
+        // std::istringstream iss(infix);
+        auto rpn = infixToRPN(infix);
+
+        
+
+        double result = evaluateRPN2(rpn);
+        
+        std::cout << "Reverse Polish Notation: ";
+        for (const auto& t : rpn) std::cout << t << ' ';
+        std::cout << '\n';
+
+
+        std::cout << "Result: " << result << '\n';
+
+
+
+    }
+
+    return replaced_expressions;
+}
+
+
 
 // Function to modify expression (binary and unary operators and terminals)
 std::string modify_expression(std::string expr) {
@@ -166,8 +215,9 @@ std::vector<std::pair<double, std::string>> sorted_expressions(std::vector<std::
     double mse_score;
 
     for (const auto& expr : expressions) {
+
         std::vector<double> scores = evaluate_fx(expr, x_values);
-        
+        std::vector<std::string> scores2 = evaluate_fx_RPN(expr, x_values);
         mse_score = mse(scores, y_values);
 
         // std::cout << mse_score << std::endl;
@@ -294,37 +344,29 @@ std::vector<std::string> mutation(const std::vector<std::string>& expressions, d
 }
 
 
-std::string simplify_expr(const std::string& expr) {
 
-    return "";
-}
+std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc, 
+    double mutation_prob, double grow_prob, std::vector<double> x_values, std::vector<double> y_values) {
 
-
-std::vector<std::string> simplify_all_expr(const std::vector<std::string>& exprs) {
-    std::vector<std::string> result;
-    for (const auto& expr : exprs) {
-        
-        result.push_back(simplify_expr(expr));
-        // std::cout << expr << simplify_expr(expr) << std::endl;
-    }
-    return result;
-}
-
-
-std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc, double mutation_prob, double grow_prob,
-    
-    std::vector<double> x_values, std::vector<double> y_values) {
     std::vector<std::string> expressions = create_initial_population(population_size, depth);
     std::vector<std::pair<double, std::string>> sorted_expressions_vec;
 
+    std::vector<std::string> elite;
+    std::vector<std::string> cross_elite;
+    std::vector<std::string> new_population;
+    std::vector<std::string> mutated_new_population;
+
+
     for (int gen = 0; gen < generations; gen++) {
 
-        sorted_expressions_vec = sorted_expressions(expressions, metric, x_values, y_values);
-        std::vector<std::string> elite = get_elite(sorted_expressions_vec, elite_perc);
-        std::vector<std::string> cross_elite = cross_expressions(elite);
 
-        std::vector<std::string> new_population = get_new_population(elite, cross_elite, population_size, depth);
-        std::vector<std::string> mutated_new_population = mutation(new_population, mutation_prob, elite_perc, grow_prob);
+
+        sorted_expressions_vec = sorted_expressions(expressions, metric, x_values, y_values);
+        elite = get_elite(sorted_expressions_vec, elite_perc);
+        cross_elite = cross_expressions(elite);
+
+        new_population = get_new_population(elite, cross_elite, population_size, depth);
+        mutated_new_population = mutation(new_population, mutation_prob, elite_perc, grow_prob);
 
         //expressions = simplify_all_expr(mutated_new_population);
         expressions = mutated_new_population;
@@ -357,7 +399,5 @@ PYBIND11_MODULE(geneticSymbolicRegressionRN, m) {
     m.def("mutation", &mutation, "function to create a mutated population of crossed expr with a given probability");
 
     m.def("genetic_training", &genetic_training, "function that runs the training of the symbolic regression using genetic training");
-
-    m.def("simplify_expr", &simplify_expr, "function simplify expr");
-    m.def("simplify_all_expr", &simplify_all_expr, "function simplify all the expr of an array");
+    m.def("evaluate_fx_RPN", &evaluate_fx_RPN, "evaluate_fx using RPN");
 }

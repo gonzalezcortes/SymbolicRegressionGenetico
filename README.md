@@ -9,6 +9,10 @@ Install the package: pip install git+https://github.com/gonzalezcortes/Genetic-A
 
 pip show genetico
 
+or 
+
+pip install .
+
 <h2> External libraries </h2>
 
 <ul>

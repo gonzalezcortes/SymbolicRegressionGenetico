@@ -34,7 +34,15 @@ ext_modules = [
         ['src/metrics.cpp'],
         include_dirs=[],
         language='c++'
+    ),
+       Extension(
+        'genetico.reverseNotation',
+        ['src/reverseNotation.cpp'],
+        include_dirs=[],
+        language='c++'
     )
+
+
 ]
 
 setup(

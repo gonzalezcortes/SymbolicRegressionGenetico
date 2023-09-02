@@ -297,8 +297,8 @@ std::vector<std::string> mutation(const std::vector<std::string>& expressions, d
 
 
 std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc, double mutation_prob, double grow_prob,
-    
     std::vector<double> x_values, std::vector<double> y_values) {
+
     std::vector<std::string> expressions = create_initial_population(population_size, depth);
     std::vector<std::pair<double, std::string>> sorted_expressions_vec;
 
