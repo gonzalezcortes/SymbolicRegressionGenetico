@@ -34,6 +34,14 @@ std::string addSpaces(const std::string& str) {
     return spaced;
 }
 
+void printAndEmptyStack(std::stack<std::string>& s) {
+    while (!s.empty()) {
+        std::cout << "stack "<< s.top() << ' ';
+        s.pop();
+    }
+    std::cout << std::endl;
+}
+
 std::vector<std::string> infixToRPN2(std::istringstream& infix) {
     std::stack<std::string> operators;
     std::vector<std::string> rpn;
@@ -44,7 +52,7 @@ std::vector<std::string> infixToRPN2(std::istringstream& infix) {
         if (token == "-" && (lastToken == "(" || precedence2(lastToken) > 0)) {
             operators.push("u-");
         }
-        else if (token == "+" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
+        else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
             while (!operators.empty() && precedence2(operators.top()) >= precedence2(token)) {
                 rpn.push_back(operators.top());
                 operators.pop();
