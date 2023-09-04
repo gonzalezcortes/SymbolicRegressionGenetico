@@ -13,6 +13,8 @@ or
 
 pip install .
 
+<p> <strong> If using Google Collab !pip install pybind11 </strong> </p>  
+
 <h2> External libraries </h2>
 
 <ul>
