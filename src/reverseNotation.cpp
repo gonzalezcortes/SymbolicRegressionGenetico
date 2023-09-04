@@ -91,7 +91,7 @@ double evaluateRPN2(const std::vector<std::string>& rpn) {
             else if (token == "*") result = a * b;
             else if (token == "/") {
                 if (b == 0) {
-                    std::cerr << "Division by zero\n";
+                    // std::cerr << "Division by zero\n";
                     return -1;
                 }
                 result = a / b;

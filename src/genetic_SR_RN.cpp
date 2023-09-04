@@ -87,11 +87,15 @@ std::vector<double> evaluate_fx(std::string expression_str, std::vector<double> 
     
 }
 
-std::vector<std::string> evaluate_fx_RPN(std::string expression_str, std::vector<double> x_values) {
+std::vector<double> evaluate_fx_RPN(std::string expression_str, std::vector<double> x_values) {
     std::vector<std::string> replaced_expressions;
 
+    int n = x_values.size();
+    std::vector<double> evaluation_vector;
+    evaluation_vector.reserve(n);
+
     for (double x_value : x_values) {
-        std::cout << "Original: " << expression_str << std::endl;
+        // std::cout << "Original: " << expression_str << std::endl;
 
         std::string replaced_str = expression_str;
         std::string x_str = "X"; // Make sure this is consistent with what's in your expression
@@ -105,29 +109,36 @@ std::vector<std::string> evaluate_fx_RPN(std::string expression_str, std::vector
 
         replaced_expressions.push_back(replaced_str);
 
-        std::cout << "Replaced: " << replaced_str << std::endl;
+        //std::cout << "Replaced: " << replaced_str << std::endl;
 
         ////////*************************
         //////////***************
         std::string infix = replaced_str;
 
         infix = addSpaces(infix);
-        std::cout << "infix: " << infix << std::endl;
+        //std::cout << "infix: " << infix << std::endl;
         std::istringstream iss(infix); //Constructs a istringstream object.
         auto rpn = infixToRPN2(iss);
 
-        std::cout << "Reverse Polish Notation: ";
-        for (const auto& t : rpn) std::cout << t << ' ';
-        std::cout << '\n';
+        // std::cout << "Reverse Polish Notation: ";
+        //for (const auto& t : rpn) std::cout << t << ' ';
+        //std::cout << '\n';
 
         double result = evaluateRPN2(rpn);
-        std::cout << "Result: " << result << '\n';
+        //std::cout << "Result: " << result << '\n';
 
+        // check for nan
+        if (std::isnan(result)) {
+            result = std::numeric_limits<double>::infinity();
+        }
+
+        // std::cout << "The result of the expression for x = " << x << " is: " << result << std::endl;
+        evaluation_vector.push_back(result);
 
 
     }
 
-    return replaced_expressions;
+    return evaluation_vector;
 }
 
 // Function to modify expression (binary and unary operators and terminals)
@@ -210,8 +221,8 @@ std::vector<std::pair<double, std::string>> sorted_expressions(std::vector<std::
 
     for (const auto& expr : expressions) {
 
-        std::vector<double> scores = evaluate_fx(expr, x_values);
-        std::vector<std::string> scores2 = evaluate_fx_RPN(expr, x_values);
+        // std::vector<double> scores = evaluate_fx(expr, x_values);
+        std::vector<double> scores = evaluate_fx_RPN(expr, x_values);
         mse_score = mse(scores, y_values);
 
         // std::cout << mse_score << std::endl;
