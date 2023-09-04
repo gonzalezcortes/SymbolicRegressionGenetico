@@ -34,14 +34,6 @@ std::string addSpaces(const std::string& str) {
     return spaced;
 }
 
-void printAndEmptyStack(std::stack<std::string>& s) {
-    while (!s.empty()) {
-        std::cout << "stack "<< s.top() << ' ';
-        s.pop();
-    }
-    std::cout << std::endl;
-}
-
 std::vector<std::string> infixToRPN2(std::istringstream& infix) {
     std::stack<std::string> operators;
     std::vector<std::string> rpn;
@@ -170,6 +162,7 @@ int main() {
         }
 
         infix = addSpaces(infix);
+        std::cout << "infix: " << infix << std::endl;
         std::istringstream iss(infix); //Constructs a istringstream object.
         auto rpn = infixToRPN2(iss);
 

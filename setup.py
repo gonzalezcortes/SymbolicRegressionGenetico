@@ -4,7 +4,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 
 def add_init_pybind11(cls):

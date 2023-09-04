@@ -9,6 +9,8 @@
 #include <string>
 
 
+
+
 int precedence2(const std::string& op) {
     if (op == "+" || op == "-")
         return 1;
@@ -46,7 +48,7 @@ std::vector<std::string> infixToRPN2(std::istringstream& infix) {
         if (token == "-" && (lastToken == "(" || precedence2(lastToken) > 0)) {
             operators.push("u-");
         }
-        else if (token == "+" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
+        else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
             while (!operators.empty() && precedence2(operators.top()) >= precedence2(token)) {
                 rpn.push_back(operators.top());
                 operators.pop();
@@ -117,6 +119,7 @@ double evaluateRPN2(const std::vector<std::string>& rpn) {
             values.push(exp(operand));
         }
 
+
         else {
             values.push(std::stod(token));
         }
@@ -154,6 +157,9 @@ bool isConvertibleToDouble(const std::string& str) {
         return false;
     }
 }
+
+
+
 
 namespace py = pybind11;
 

@@ -112,6 +112,7 @@ std::vector<std::string> evaluate_fx_RPN(std::string expression_str, std::vector
         std::string infix = replaced_str;
 
         infix = addSpaces(infix);
+        std::cout << "infix: " << infix << std::endl;
         std::istringstream iss(infix); //Constructs a istringstream object.
         auto rpn = infixToRPN2(iss);
 
