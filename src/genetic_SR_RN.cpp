@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <limits>
 
-
-
 #include "./external/exprtk.hpp"
 #include "metrics.cpp" // metric from mse
 
@@ -94,7 +92,7 @@ std::vector<std::string> evaluate_fx_RPN(std::string expression_str, std::vector
 
     for (double x_value : x_values) {
         std::cout << "Original: " << expression_str << std::endl;
-        
+
         std::string replaced_str = expression_str;
         std::string x_str = "X"; // Make sure this is consistent with what's in your expression
         std::string x_value_str = std::to_string(x_value);
@@ -111,20 +109,17 @@ std::vector<std::string> evaluate_fx_RPN(std::string expression_str, std::vector
 
         ////////*************************
         //////////***************
-        ///change the function to receive a string
-        std::string infix = addSpaces(replaced_str);///
-        // std::istringstream iss(infix);
-        auto rpn = infixToRPN(infix);
+        std::string infix = replaced_str;
 
-        
+        infix = addSpaces(infix);
+        std::istringstream iss(infix); //Constructs a istringstream object.
+        auto rpn = infixToRPN2(iss);
 
-        double result = evaluateRPN2(rpn);
-        
         std::cout << "Reverse Polish Notation: ";
         for (const auto& t : rpn) std::cout << t << ' ';
         std::cout << '\n';
 
-
+        double result = evaluateRPN2(rpn);
         std::cout << "Result: " << result << '\n';
 
 
@@ -133,8 +128,6 @@ std::vector<std::string> evaluate_fx_RPN(std::string expression_str, std::vector
 
     return replaced_expressions;
 }
-
-
 
 // Function to modify expression (binary and unary operators and terminals)
 std::string modify_expression(std::string expr) {
@@ -274,7 +267,6 @@ std::vector<std::string> cross_expressions(const std::vector<std::string>& elite
     return crossed_expressions;
 }
 
-
 std::vector<std::string> get_new_population(std::vector<std::string>& crossed_expressions, std::vector<std::string>& elite_expressions, int population_size, int depth) {
     
     std::vector<std::string> new_expressions;
@@ -399,5 +391,4 @@ PYBIND11_MODULE(geneticSymbolicRegressionRN, m) {
     m.def("mutation", &mutation, "function to create a mutated population of crossed expr with a given probability");
 
     m.def("genetic_training", &genetic_training, "function that runs the training of the symbolic regression using genetic training");
-    m.def("evaluate_fx_RPN", &evaluate_fx_RPN, "evaluate_fx using RPN");
 }

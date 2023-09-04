@@ -29,9 +29,11 @@ std::vector<std::string> infixToRPN2(std::istringstream& infix) {
                 operators.pop();
             }
             operators.push(token);
-        } else if (token == "(") {
+        }
+        else if (token == "(") {
             operators.push(token);
-        } else if (token == ")") {
+        }
+        else if (token == ")") {
             while (!operators.empty() && operators.top() != "(") {
                 rpn.push_back(operators.top());
                 operators.pop();
@@ -39,7 +41,8 @@ std::vector<std::string> infixToRPN2(std::istringstream& infix) {
             if (!operators.empty()) {
                 operators.pop(); // Pop the '(' symbol.
             }
-        } else {
+        }
+        else {
             rpn.push_back(token);
         }
     }
@@ -86,9 +89,11 @@ std::vector<std::string> infixToRPN(std::istringstream& infix) {
                 operators.pop();
             }
             operators.push(token[0]);
-        } else if (token == "(") {
+        }
+        else if (token == "(") {
             operators.push(token[0]);
-        } else if (token == ")") {
+        }
+        else if (token == ")") {
             while (!operators.empty() && operators.top() != '(') {
                 rpn.push_back(std::string(1, operators.top()));
                 operators.pop();
@@ -96,7 +101,8 @@ std::vector<std::string> infixToRPN(std::istringstream& infix) {
             if (!operators.empty()) {
                 operators.pop(); // Pop the '(' symbol.
             }
-        } else {
+        }
+        else {
             rpn.push_back(token);
         }
     }
@@ -129,23 +135,28 @@ double evaluateRPN2(std::vector<std::string>& rpn) {
                 values.push(left_operand * right_operand);
             }
             else if (token == "/") {
-                if(right_operand != 0) {
+                if (right_operand != 0) {
                     values.push(left_operand / right_operand);
-                } else {
+                }
+                else {
                     std::cerr << "Error: Division by zero!" << std::endl;
                     return 0;
                 }
             }
-        } else if (token == "sin") {
+        }
+        else if (token == "sin") {
             double operand = values.top(); values.pop();
             values.push(sin(operand));
-        } else if (token == "cos") {
+        }
+        else if (token == "cos") {
             double operand = values.top(); values.pop();
             values.push(cos(operand));
-        } else if (token == "exp") {
+        }
+        else if (token == "exp") {
             double operand = values.top(); values.pop();
             values.push(exp(operand));
-        } else {
+        }
+        else {
             values.push(std::stod(token));
         }
     }
@@ -171,14 +182,16 @@ double evaluateRPN(std::vector<std::string>& rpn) {
                 values.push(left_operand * right_operand);
             }
             else if (token == "/") {
-                if(right_operand != 0) {
+                if (right_operand != 0) {
                     values.push(left_operand / right_operand);
-                } else {
+                }
+                else {
                     std::cerr << "Error: Division by zero!" << std::endl;
                     return 0;
                 }
             }
-        } else {
+        }
+        else {
             values.push(std::stod(token));
         }
     }
@@ -193,7 +206,8 @@ std::string addSpacesToInfix(const std::string& infix) {
             spacedInfix += ' ';
             spacedInfix += ch;
             spacedInfix += ' ';
-        } else {
+        }
+        else {
             spacedInfix += ch;
         }
     }
@@ -224,7 +238,7 @@ int main() {
     std::vector<std::string> rpn = infixToRPN2(expression_stream);
 
     std::cout << "RPN expression: ";
-    for (const auto &token : rpn) {
+    for (const auto& token : rpn) {
         std::cout << token << " ";
     };
 

@@ -27,8 +27,9 @@ metric = "mse"
 
 
 print(f"Running with a population size of {population_size} and {generations} generations.")
-
+print("*------------*------------*------------")
 sorted_expressions_1 = gsp.genetic_training(population_size, depth, generations, metric, elite_perc, mutation_prob, grow_prob, x, y)
+
 print("*------------*------------*------------")
 sorted_expressions_2 = gspRN.genetic_training(population_size, depth, generations, metric, elite_perc, mutation_prob, grow_prob, x, y)
 
