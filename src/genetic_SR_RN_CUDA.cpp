@@ -50,42 +50,7 @@ std::vector<std::string> create_initial_population(int pop_size, int depth) {
     return population;
 }
 
-// Function to evaluate an expression
-std::vector<double> evaluate_fx(std::string expression_str, std::vector<double> x_values) {
-    double x;
 
-    exprtk::symbol_table<double> symbol_table;
-    symbol_table.add_variable("X", x);
-    exprtk::expression<double> expression;
-    exprtk::parser<double> parser;
-
-    int n = x_values.size();
-    std::vector<double> evaluation_vector;
-    evaluation_vector.reserve(n);
-
-    expression.register_symbol_table(symbol_table);
-    if (parser.compile(expression_str, expression))
-    {
-        for (double x_value : x_values) {
-            x = x_value;
-            double result = expression.value();
-            
-            // check for nan
-            if (std::isnan(result)) {
-                result = std::numeric_limits<double>::infinity();
-            }
-
-            // std::cout << "The result of the expression for x = " << x << " is: " << result << std::endl;
-            evaluation_vector.push_back(result);
-        }
-        return evaluation_vector;
-    }
-    else {
-        std::cout << "There is an error in the evaluation of the function " << expression_str << std::endl;
-        return std::vector<double>();
-    }
-    
-}
 
 std::vector<double> evaluationArray(std::vector<double> x_values, std::vector<std::string> rpn) {
     int n = x_values.size();
@@ -107,6 +72,7 @@ std::vector<double> evaluationArray(std::vector<double> x_values, std::vector<st
     }
     return evaluation_vector;
 }
+
 
 std::vector<double> evaluate_fx_RPN2(std::string expression_str, std::vector<double> x_values) {
     std::vector<std::string> replaced_expressions;
@@ -395,6 +361,8 @@ std::vector<std::string> mutation(const std::vector<std::string>& expressions, d
     return new_expressions;
 }
 
+
+
 std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc, 
     double mutation_prob, double grow_prob, std::vector<double> x_values, std::vector<double> y_values) {
 
@@ -429,13 +397,11 @@ std::vector<std::pair<double, std::string>> genetic_training(int population_size
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(geneticSymbolicRegressionRN, m) {
+PYBIND11_MODULE(geneticSymbolicRegressionRN_CUDA, m) {
     m.def("generate_random_expr", &generate_random_expr, "A function that generates expressions");
     m.def("create_initial_population", &create_initial_population, "A function to create an initial population");
 
-    m.def("evaluate_fx", &evaluate_fx, "A function to evaluate an expression");
     m.def("modify_expression", &modify_expression, "a function to modify expressions");
-
     m.def("add_term_left", &add_term_left, "a function to add term in the left side of the expression");
     m.def("add_term_right", &add_term_right, "a function to add term in the right side of the expression");
 

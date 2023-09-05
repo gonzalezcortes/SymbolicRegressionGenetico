@@ -1,5 +1,3 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 #include <iostream>
 #include <stack>
 #include <sstream>
@@ -7,29 +5,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
-
-
-std::string rpnToInfix(const std::vector<std::string>& rpn) {
-    std::stack<std::string> stack;
-    for (const auto& token : rpn) {
-        if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^") {
-            std::string op2 = stack.top(); stack.pop();
-            std::string op1 = stack.top(); stack.pop();
-            std::string expr = "(" + op1 + " " + token + " " + op2 + ")";
-            stack.push(expr);
-        }
-        else if (token == "sin" || token == "cos" || token == "exp") {
-            std::string op = stack.top(); stack.pop();
-            std::string expr = token + "(" + op + ")";
-            stack.push(expr);
-        }
-        else {
-            stack.push(token);
-        }
-    }
-    return stack.top();
-}
-
+#include <limits>
 
 int precedence2(const std::string& op) {
     if (op == "+" || op == "-")
@@ -111,7 +87,7 @@ double evaluateRPN2(const std::vector<std::string>& rpn) {
             else if (token == "*") result = a * b;
             else if (token == "/") {
                 if (b == 0) {
-                    // std::cerr << "Division by zero\n";
+                    std::cerr << "Division by zero\n";
                     return -1;
                 }
                 result = a / b;
@@ -121,23 +97,19 @@ double evaluateRPN2(const std::vector<std::string>& rpn) {
         }
         else if (token == "u-") {
             double a = values.top(); values.pop();
-            values.push(-a);
-        }
+            values.push(-a);}
 
         else if (token == "sin") {
             double operand = values.top(); values.pop();
-            values.push(sin(operand));
-        }
+            values.push(sin(operand));}
 
         else if (token == "cos") {
             double operand = values.top(); values.pop();
-            values.push(cos(operand));
-        }
+            values.push(cos(operand));}
 
         else if (token == "exp") {
             double operand = values.top(); values.pop();
-            values.push(exp(operand));
-        }
+            values.push(exp(operand));}
 
 
         else {
@@ -178,20 +150,70 @@ bool isConvertibleToDouble(const std::string& str) {
     }
 }
 
+std::string rpnToInfix(const std::vector<std::string>& rpn) {
+    std::stack<std::string> stack;
+    for (const auto& token : rpn) {
+        if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^") {
+            std::string op2 = stack.top(); stack.pop();
+            std::string op1 = stack.top(); stack.pop();
+            std::string expr = "(" + op1 + " " + token + " " + op2 + ")";
+            stack.push(expr);
+        }
+        else if (token == "sin" || token == "cos" || token == "exp") {
+            std::string op = stack.top(); stack.pop();
+            std::string expr = token + "(" + op + ")";
+            stack.push(expr);
+        }
+        else {
+            stack.push(token);
+        }
+    }
+    return stack.top();
+}
 
+int main() {
+    std::string infix;
+    while (true) {  // This will keep looping until you break out of it
+        std::cout << "Enter an infix expression (or type 'exit' to quit): ";
+        std::getline(std::cin, infix);
 
+        if (infix == "exit") {
+            break;  // If the user types 'exit', break out of the loop
+        }
 
-namespace py = pybind11;
+        infix = addSpaces(infix);
+        std::cout << "infix: " << infix << std::endl;
+        std::istringstream iss(infix); //Constructs a istringstream object.
+        std::vector<std::string> rpn = infixToRPN2(iss);
 
-PYBIND11_MODULE(reverseNotation, m) {
-    m.def("precedence2", &precedence2, "A function that do reverse Notation");
-    m.def("addSpaces", &addSpaces, "A function that do reverse Notation");
+        // auto rpn_expr = rpn;
+        std::string x_str = "X"; // Make sure this is consistent with what's in your expression
+        std::vector<double> x_values = { 0, 1.0, 2.0, 3.0, 4.0 };
 
-    m.def("infixToRPN2", &infixToRPN2, "A function that do reverse Notation");
-    m.def("evaluateRPN2", &evaluateRPN2, "A function that do reverse Notation");
+        for (double x : x_values) {
+            std::vector<std::string> rpn_copy = rpn;
+            for (std::string& token : rpn_copy) {
+                if (token == "X") token = std::to_string(x);
+            }
 
-    m.def("perform_simplification", &perform_simplification, "A function that do reverse Notation");
-    m.def("isConvertibleToDouble", &isConvertibleToDouble, "A function that do reverse Notation");
+            double result = evaluateRPN2(rpn_copy);
+            
+            if (std::isnan(result)) {
+                result = std::numeric_limits<double>::infinity();
+            }
 
-    m.def("rpnToInfix", &rpnToInfix, "rpnToInfix");
+            std::cout << "For X = " << x << ", result = " << result << std::endl;
+        }
+
+        std::cout << "Reverse Polish Notation: ";
+        for (const auto& t : rpn) std::cout << t << ' ';
+        std::cout << '\n';
+
+        double result = evaluateRPN2(rpn);
+        std::cout << "Result: " << result << '\n';
+
+        std::string inverted = rpnToInfix(rpn);
+        std::cout << "Inverted equation " << inverted << std::endl;
+    }
+    return 0;
 }

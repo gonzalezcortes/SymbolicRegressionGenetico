@@ -8,5 +8,6 @@ genetico.egg-info/requires.txt
 genetico.egg-info/top_level.txt
 src/genetic_SR.cpp
 src/genetic_SR_RN.cpp
+src/genetic_SR_RN_CUDA.cpp
 src/metrics.cpp
 src/reverseNotation.cpp

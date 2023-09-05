@@ -150,6 +150,26 @@ bool isConvertibleToDouble(const std::string& str) {
     }
 }
 
+std::string rpnToInfix(const std::vector<std::string>& rpn) {
+    std::stack<std::string> stack;
+    for (const auto& token : rpn) {
+        if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^") {
+            std::string op2 = stack.top(); stack.pop();
+            std::string op1 = stack.top(); stack.pop();
+            std::string expr = "(" + op1 + " " + token + " " + op2 + ")";
+            stack.push(expr);
+        }
+        else if (token == "sin" || token == "cos" || token == "exp") {
+            std::string op = stack.top(); stack.pop();
+            std::string expr = token + "(" + op + ")";
+            stack.push(expr);
+        }
+        else {
+            stack.push(token);
+        }
+    }
+    return stack.top();
+}
 
 int main() {
     std::string infix;
@@ -172,6 +192,9 @@ int main() {
 
         double result = evaluateRPN2(rpn);
         std::cout << "Result: " << result << '\n';
+
+        std::string inverted = rpnToInfix(rpn);
+        std::cout << "Inverted equation " << inverted << std::endl;
     }
     return 0;
 }

@@ -30,6 +30,12 @@ ext_modules = [
         language='c++'
     ),
        Extension(
+        'genetico.genetico.geneticSymbolicRegressionRN_CUDA',
+        ['src/genetic_SR_RN_CUDA.cpp'],
+        include_dirs=[],
+        language='c++'
+    ),
+       Extension(
         'genetico.metrics',
         ['src/metrics.cpp'],
         include_dirs=[],
