@@ -1,11 +1,9 @@
-# setup.py
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
 __version__ = '0.0.8'
-
 
 def add_init_pybind11(cls):
     class build_ext_subclass(cls):
@@ -17,32 +15,38 @@ def add_init_pybind11(cls):
     return build_ext_subclass
 
 ext_modules = [
-       Extension(
+    Extension(
         'genetico.geneticSymbolicRegression',
         ['src/genetic_SR.cpp'],
         include_dirs=[],
-        language='c++'
+        language='c++',
+        extra_compile_args=["-std=c++11"],
+        extra_link_args=['-shared']
     ),
-       Extension(
+    Extension(
         'genetico.geneticSymbolicRegressionRN',
         ['src/genetic_SR_RN.cpp'],
         include_dirs=[],
-        language='c++'
+        language='c++',
+        extra_compile_args=["-std=c++11"],
+        extra_link_args=['-shared']
     ),
-       Extension(
+    Extension(
         'genetico.metrics',
         ['src/metrics.cpp'],
         include_dirs=[],
-        language='c++'
+        language='c++',
+        extra_compile_args=["-std=c++11"],
+        extra_link_args=['-shared']
     ),
-       Extension(
+    Extension(
         'genetico.reverseNotation',
         ['src/reverseNotation.cpp'],
         include_dirs=[],
-        language='c++'
+        language='c++',
+        extra_compile_args=["-std=c++11"],
+        extra_link_args=['-shared']
     )
-
-
 ]
 
 setup(
