@@ -4,7 +4,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 
 def add_init_pybind11(cls):
@@ -26,12 +26,6 @@ ext_modules = [
        Extension(
         'genetico.geneticSymbolicRegressionRN',
         ['src/genetic_SR_RN.cpp'],
-        include_dirs=[],
-        language='c++'
-    ),
-       Extension(
-        'genetico.genetico.geneticSymbolicRegressionRN_CUDA',
-        ['src/genetic_SR_RN_CUDA.cpp'],
         include_dirs=[],
         language='c++'
     ),
