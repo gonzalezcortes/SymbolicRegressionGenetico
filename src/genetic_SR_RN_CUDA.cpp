@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 #include <limits>
+#include <cuda_runtime.h>
 
 #include "./external/exprtk.hpp"
 #include "metrics.cpp" // metric from mse
@@ -17,6 +18,56 @@
 std::vector<std::string> binary_operators = { "+", "-", "*", "/" };
 std::vector<std::string> unary_operators = { "sin", "cos" , "exp"};
 std::vector<std::string> terminals = { "X", "1", "2", "3" };
+
+
+
+// Kernel function to evaluate each element of x_values array
+__global__ void evaluationArrayKernel(double* x_values, double* evaluation_vector, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n) return;
+
+    double x = x_values[i];
+    std::vector<std::string> rpn_copy;  // Replace with your RPN expression
+
+    for (std::string& token : rpn_copy) {
+        if (token == "X") token = std::to_string(x);
+    }
+
+    double result = evaluateRPN2(rpn_copy);
+
+    if (std::isnan(result)) {
+        result = std::numeric_limits<double>::infinity();
+    }
+    evaluation_vector[i] = result;
+}
+
+std::vector<double> evaluationArray(std::vector<double> x_values, std::vector<std::string> rpn) {
+    int n = x_values.size();
+    std::vector<double> evaluation_vector(n);
+
+    // Allocate device memory
+    double* d_x_values;
+    double* d_evaluation_vector;
+    cudaMalloc((void**)&d_x_values, n * sizeof(double));
+    cudaMalloc((void**)&d_evaluation_vector, n * sizeof(double));
+
+    // Transfer data from host to device
+    cudaMemcpy(d_x_values, x_values.data(), n * sizeof(double), cudaMemcpyHostToDevice);
+
+    // Execute kernel
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+    evaluationArrayKernel << <blocksPerGrid, threadsPerBlock >> > (d_x_values, d_evaluation_vector, n);
+
+    // Transfer data from device to host
+    cudaMemcpy(evaluation_vector.data(), d_evaluation_vector, n * sizeof(double), cudaMemcpyDeviceToHost);
+
+    // Free device memory
+    cudaFree(d_x_values);
+    cudaFree(d_evaluation_vector);
+
+    return evaluation_vector;
+}
 
 
 int random_int(int min, int max) {
@@ -52,7 +103,7 @@ std::vector<std::string> create_initial_population(int pop_size, int depth) {
 
 
 
-std::vector<double> evaluationArray(std::vector<double> x_values, std::vector<std::string> rpn) {
+std::vector<double> evaluationArray_cpu(std::vector<double> x_values, std::vector<std::string> rpn) {
     int n = x_values.size();
     std::vector<double> evaluation_vector;
     evaluation_vector.reserve(n);
