@@ -1,62 +1,45 @@
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-import sys
+import subprocess
 import setuptools
 
 __version__ = '0.0.8'
 
-def add_init_pybind11(cls):
-    class build_ext_subclass(cls):
-        def finalize_options(self):
-            super().finalize_options()
-            __builtins__.__NUMPY_SETUP__ = False
-            import pybind11
-            self.include_dirs.append(pybind11.get_include())
-    return build_ext_subclass
+# Custom build_ext subclass to build CUDA files
+class build_ext_subclass(build_ext):
+    def finalize_options(self):
+        super().finalize_options()
+        import pybind11
+        self.include_dirs.append(pybind11.get_include())
+
+    def run(self):
+        # compile the CUDA part
+        self.compile_cuda('kernel.cu', 'kernel.o')
+        # build extensions as usual
+        super().run()
+
+    @staticmethod
+    def compile_cuda(source, output):
+        command = [
+            'nvcc',
+            '-c',
+            '-o', output,
+            '-arch=sm_35',
+            '--compiler-options', '-fPIC',
+            source
+        ]
+        print("Running:", " ".join(command))
+        subprocess.check_call(command)
 
 ext_modules = [
+    # ... your existing modules
     Extension(
-        'genetico.geneticSymbolicRegression',
-        ['src/genetic_SR.cpp'],
+        'kernel',
+        ['kernel.cpp', 'kernel.o'],
         include_dirs=[],
         language='c++',
         extra_compile_args=["-std=c++11"],
-        extra_link_args=['-shared']
-    ),
-    Extension(
-        'genetico.geneticSymbolicRegressionRN',
-        ['src/genetic_SR_RN.cpp'],
-        include_dirs=[],
-        language='c++',
-        extra_compile_args=["-std=c++11"],
-        extra_link_args=['-shared']
-    ),
-    Extension(
-        'genetico.metrics',
-        ['src/metrics.cpp'],
-        include_dirs=[],
-        language='c++',
-        extra_compile_args=["-std=c++11"],
-        extra_link_args=['-shared']
-    ),
-    Extension(
-        'genetico.reverseNotation',
-        ['src/reverseNotation.cpp'],
-        include_dirs=[],
-        language='c++',
-        extra_compile_args=["-std=c++11"],
-        extra_link_args=['-shared']
-    ),
-    Extension(
-        'kernel',  # the module name exposed to Python
-        ['kernel.cu'],  # the CUDA source file
-        include_dirs=[],
-        language='c++',
-        extra_compile_args={
-            'gcc': ["-std=c++11"],
-            'nvcc': ['-arch=sm_35', '--ptxas-options=-v', '-c', '--compiler-options', "'-fPIC'"]
-        },
-        extra_link_args=['-shared']
+        extra_link_args=['-shared'],
     ),
 ]
 
@@ -70,6 +53,6 @@ setup(
     long_description='',
     ext_modules=ext_modules,
     install_requires=['pybind11>=2.5.0'],
-    cmdclass={'build_ext': add_init_pybind11(build_ext)},
+    cmdclass={'build_ext': build_ext_subclass},
     zip_safe=False,
 )
