@@ -46,7 +46,18 @@ ext_modules = [
         language='c++',
         extra_compile_args=["-std=c++11"],
         extra_link_args=['-shared']
-    )
+    ),
+    Extension(
+        'kernel',  # the module name exposed to Python
+        ['kernel.cu'],  # the CUDA source file
+        include_dirs=[],
+        language='c++',
+        extra_compile_args={
+            'gcc': ["-std=c++11"],
+            'nvcc': ['-arch=sm_35', '--ptxas-options=-v', '-c', '--compiler-options', "'-fPIC'"]
+        },
+        extra_link_args=['-shared']
+    ),
 ]
 
 setup(
