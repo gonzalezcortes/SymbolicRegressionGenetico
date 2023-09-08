@@ -1,14 +1,17 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <vector>
 #include <stdio.h>
 
 __global__ void sayHello() {
     printf("Hello world from the GPU!\n");
 }
 
-int main() {
-    printf("Hello world from the CPU!\n");
+void launchSayHello() {
+    sayHello << <1, 1 >> > ();  // Launch kernel with 1 block and 1 thread
+    cudaDeviceSynchronize();  // Make sure the kernel has finished
+}
 
-    sayHello << <1, 1 >> > ();
-    cudaDeviceSynchronize();
-
-    return 0;
+PYBIND11_MODULE(kernel, m) {
+    m.def("sayHello", &launchSayHello, "A function to say hello from the GPU");
 }
