@@ -1,17 +1,41 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <vector>
 #include <stdio.h>
 
-__global__ void sayHello() {
-    printf("Hello world from the GPU!\n");
+// Define a kernel function.
+__global__ void helloWorldKernel(int* array, int N) {
+    int index = threadIdx.x + blockIdx.x * blockDim.x;
+    if (index < N) {
+        array[index] = index;
+    }
 }
 
-void launchSayHello() {
-    sayHello << <1, 1 >> > ();  // Launch kernel with 1 block and 1 thread
-    cudaDeviceSynchronize();  // Make sure the kernel has finished
-}
+int main() {
+    int N = 16; // The size of our array
+    int* host_array, * device_array;
 
-PYBIND11_MODULE(kernel, m) {
-    m.def("sayHello", &launchSayHello, "A function to say hello from the GPU");
+    // Allocate host memory
+    host_array = (int*)malloc(N * sizeof(int));
+
+    // Allocate device memory
+    cudaMalloc((void**)&device_array, N * sizeof(int));
+
+    // Launch the kernel
+    helloWorldKernel << <1, N >> > (device_array, N);
+
+    // Copy the array back to the host
+    cudaMemcpy(host_array, device_array, N * sizeof(int), cudaMemcpyDeviceToHost);
+
+    // Print out the resulting array
+    printf("Hello from CUDA!\nArray: ");
+    for (int i = 0; i < N; i++) {
+        printf("%d ", host_array[i]);
+    }
+    printf("\n");
+
+    // Free device memory
+    cudaFree(device_array);
+
+    // Free host memory
+    free(host_array);
+
+    return 0;
 }
