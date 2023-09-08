@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-// Define a kernel function.
 __global__ void helloWorldKernel(int* array, int N) {
     int index = threadIdx.x + blockIdx.x * blockDim.x;
     if (index < N) {
@@ -8,7 +7,7 @@ __global__ void helloWorldKernel(int* array, int N) {
     }
 }
 
-extern "C" void run_hello_cuda(int* host_array, int N) {
+extern "C" void run_hello_world_kernel(int* host_array, int N) {
     int* device_array;
 
     // Allocate device memory

@@ -49,7 +49,7 @@ ext_modules = [
     ),
     Extension(
         'genetico.cuda_kernel',
-        ['build/hello.o'],  # Object file is already compiled
+        ['build/hello_world.o'],  # Object file is already compiled
         include_dirs=[],
         language='c++',
         extra_compile_args=["-std=c++11"],
