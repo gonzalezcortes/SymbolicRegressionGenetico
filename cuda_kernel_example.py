@@ -1,7 +1,3 @@
-from genetico import cuda_kernel
-import numpy as np
+import genetico.cuda_kernel as cuda_kernel
 
-data = [1, 2, 3, 4, 5]
-cuda_kernel.square(data)
-
-print(data)  # Output should be [1, 4, 9, 16, 25]
+cuda_kernel.run_hello_world()
