@@ -46,18 +46,6 @@ ext_modules = [
         language='c++',
         extra_compile_args=["-std=c++11"],
         extra_link_args=['-shared']
-    ),
-    Extension(
-        'genetico.cuda_kernel',
-        ['src/kernel.cu'],  # Change this to your actual file path
-        include_dirs=[],
-        language='c++',
-        extra_compile_args={'gcc': ["-std=c++11"],
-                            'nvcc': ['-c', '--compiler-options', "'-fPIC'", 
-                                     '--shared', '-o', "'kernel.so'", 
-                                     "'kernel.cu'", 
-                                     "`python3 -m pybind11 --includes`"]},
-        extra_link_args=[]
     )
 ]
 
