@@ -1,0 +1,13 @@
+README.md
+setup.py
+genetico.egg-info/PKG-INFO
+genetico.egg-info/SOURCES.txt
+genetico.egg-info/dependency_links.txt
+genetico.egg-info/not-zip-safe
+genetico.egg-info/requires.txt
+genetico.egg-info/top_level.txt
+src/cuda_wrapper.cpp
+src/genetic_SR.cpp
+src/genetic_SR_RN.cpp
+src/metrics.cpp
+src/reverseNotation.cpp
