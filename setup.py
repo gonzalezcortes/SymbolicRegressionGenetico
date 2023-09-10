@@ -3,7 +3,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 def add_init_pybind11(cls):
     class build_ext_subclass(cls):
@@ -46,8 +46,15 @@ ext_modules = [
         language='c++',
         extra_compile_args=["-std=c++11"],
         extra_link_args=['-shared']
+    ),
+    Extension(
+        'genetico.cuda_kernel',
+        ['src/cuda_wrapper.cpp', 'build/hello_world.o'],  # Object file is already compiled
+        include_dirs=[],
+        language='c++',
+        extra_compile_args=["-std=c++11"],
+        extra_link_args=['-shared']
     )
-
 ]
 
 setup(
