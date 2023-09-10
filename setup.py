@@ -49,11 +49,12 @@ ext_modules = [
     ),
     Extension(
         'genetico.cuda_kernel',
-        ['src/cuda_wrapper.cpp', 'build/hello_world.o'],  # Object file is already compiled
+        ['src/cuda_wrapper.cpp'],  # Object file is already compiled
         include_dirs=[],
         language='c++',
         extra_compile_args=["-std=c++11"],
-        extra_link_args=['-shared']
+        extra_link_args=['-shared', 'src/build/hello_world.o']
+
     )
 ]
 
