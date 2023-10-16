@@ -9,7 +9,7 @@ The dataset contains three columns:
 - `y`: Represents the y-coordinate.
 - `z`: Represents the z-coordinate, calculated using the equation: 
 
-- \begin{equation}
+\begin{equation}
   z = x^2 + y^2
 \end{equation}
 \( z = x^2 + y^2 \).
