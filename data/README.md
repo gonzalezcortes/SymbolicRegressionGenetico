@@ -7,7 +7,10 @@
 The dataset contains three columns:
 - `x`: Represents the x-coordinate.
 - `y`: Represents the y-coordinate.
-- `z`: Represents the z-coordinate, calculated using the equation \( z = x^2 + y^2 \).
+- `z`: Represents the z-coordinate, calculated using the equation 
+\begin{align}
+  z = x^2 + y^2
+\end{align}
 
 ### Generation
 
