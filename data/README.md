@@ -25,4 +25,4 @@ This dataset also contains two columns:
 This dataset contains three columns:
 - `x`: Represents the x-coordinate.
 - `y`: Represents the y-coordinate.
-- `z`: Represents the z-coordinate, calculated using the equation $ \( z = x^2 + y^2 \) $.
+- `z`: Represents the z-coordinate, calculated using the equation $` \( z = x^2 + y^2 \) `$.
