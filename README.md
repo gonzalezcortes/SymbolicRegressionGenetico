@@ -18,6 +18,7 @@ pip install .
 <h2> External libraries </h2>
 
 <ul>
+	<li> C++ compiler </li>
 	<li> C++  Mathematical  Expression  Toolkit  Library (exprtk)</li>
 	<li> Numpy </li>
 	<li> Matplotlib </li>

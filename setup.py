@@ -48,14 +48,13 @@ ext_modules = [
         extra_link_args=['-shared']
     ),
     Extension(
-        'genetico.cuda_kernel',
-        ['src/cuda_wrapper.cpp'],  # Object file is already compiled
+        'genetico.geneticSymbolicRegressionRN_MV',
+        ['src/genetic_SR_RN_MV.cpp'],
         include_dirs=[],
         language='c++',
         extra_compile_args=["-std=c++11"],
-        extra_link_args=['-shared', 'src/build/hello_world.o']
-
-    )
+        extra_link_args=['-shared']
+        )
 ]
 
 setup(
