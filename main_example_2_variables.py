@@ -8,24 +8,11 @@ np.random.seed(8)
 
 t0 = time.time()
 
-x = np.linspace(-10, 10, 50)
-y = np.linspace(-10, 10, 50)
-x, y = np.meshgrid(x, y)
+data = np.genfromtxt("data/simple_dataset_3_variables.csv", delimiter=",", skip_header=1)
 
-# Calculate the function values based on the grid
-z = x**2 + y**2
-
-# Flatten the x, y, and z arrays
-x_flat = x.flatten()
-y_flat = y.flatten()
-z_flat = z.flatten()
-
-# Stack them into a single dataset
-dataset = np.stack((x_flat, y_flat, z_flat), axis=1)
-
-# Save the dataset to a CSV file
-np.savetxt("data/simple_dataset_3_variables.csv", dataset, delimiter=",", header="x,y,z", comments="")
-
+x = data[:, 0]
+y = data[:, 1]
+z = data[:, 2]
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')

@@ -11,12 +11,12 @@ t0 = time.time()
 #x = np.linspace(0, 3*np.pi, num=201)
 #y = np.sin(2*x+x) + np.cos(x)
 
-x = np.linspace(0, 4*np.pi, num=201)
-y = np.sin(x) + np.cos(x + x) + np.random.normal(scale=0.2, size=201)
+data = np.genfromtxt("data/simple_dataset_1_variable_A.csv", delimiter=",", skip_header=1)
+
+x = data[:, 0]
+y = data[:, 1]
 
 
-#x = np.linspace(0, 4*np.pi, num=201)
-#y = np.sin(x) + np.exp((3*x)/2) + np.cos(x + x) + np.random.normal(scale=0.2, size=201)
 
 # Get initial values
 population_size = 100

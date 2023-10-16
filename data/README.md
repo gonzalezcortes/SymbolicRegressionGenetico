@@ -1,41 +1,28 @@
 ## Datasets
 
-- **simple_dataset_3_variables.csv**: This dataset was generated to represent an equation of two variables.
+This repository contains three datasets:
 
-### Description
+1. **simple_dataset_1_variable_A.csv**
+2. **simple_dataset_1_variable_B.csv**
+3. **simple_dataset_2_variables.csv**
 
-The dataset contains three columns:
+### Descriptions
+
+#### simple_dataset_1_variable_A.csv
+
+This dataset contains two columns:
+- `x`: Represents the x-coordinate spanning from 0 to \(4\pi\).
+- `y`: Represents the y-coordinate calculated using the equation \( \sin(x) + \cos(2x) + \text{random noise} \).
+
+#### simple_dataset_1_variable_B.csv
+
+This dataset also contains two columns:
+- `x`: Represents the x-coordinate spanning from 0 to \(4\pi\).
+- `y`: Represents the y-coordinate calculated using the equation \( \sin(x) + \exp\left(\frac{3x}{2}\right) + \cos(2x) + \text{random noise} \).
+
+#### simple_dataset_2_variables.csv
+
+This dataset contains three columns:
 - `x`: Represents the x-coordinate.
 - `y`: Represents the y-coordinate.
-- `z`: Represents the z-coordinate, calculated using the equation: 
-
-$\begin{equation}
-  z = x^2 + y^2
-\end{equation}
-\( z = x^2 + y^2 \)$
-
-### Generation
-
-Here is the Python code snippet used for generating the dataset:
-
-```python
-import numpy as np
-
-# Generate a grid of x and y values
-x = np.linspace(-10, 10, 50)
-y = np.linspace(-10, 10, 50)
-x, y = np.meshgrid(x, y)
-
-# Calculate the corresponding z values
-z = x**2 + y**2
-
-# Flatten the arrays
-x_flat = x.flatten()
-y_flat = y.flatten()
-z_flat = z.flatten()
-
-# Stack the flattened arrays into a single dataset
-dataset = np.stack((x_flat, y_flat, z_flat), axis=1)
-
-# Save the dataset to a CSV file within a 'data' directory
-np.savetxt("data/simple_dataset_3_variables.csv", dataset, delimiter=",", header="x,y,z", comments="")
+- `z`: Represents the z-coordinate, calculated using the equation $ \( z = x^2 + y^2 \) $.
