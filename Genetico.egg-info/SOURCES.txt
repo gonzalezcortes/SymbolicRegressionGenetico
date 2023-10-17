@@ -9,5 +9,6 @@ genetico.egg-info/top_level.txt
 src/cuda_wrapper.cpp
 src/genetic_SR.cpp
 src/genetic_SR_RN.cpp
+src/genetic_SR_RN_MV.cpp
 src/metrics.cpp
 src/reverseNotation.cpp

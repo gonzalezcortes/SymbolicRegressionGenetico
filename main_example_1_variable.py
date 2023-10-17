@@ -7,15 +7,11 @@ from genetico import metrics
 np.random.seed(8)
 
 t0 = time.time()
-###### First Equation to test ######
-#x = np.linspace(0, 3*np.pi, num=201)
-#y = np.sin(2*x+x) + np.cos(x)
 
 data = np.genfromtxt("data/simple_dataset_1_variable_A.csv", delimiter=",", skip_header=1)
 
 x = data[:, 0]
 y = data[:, 1]
-
 
 
 # Get initial values

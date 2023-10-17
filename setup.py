@@ -54,7 +54,7 @@ ext_modules = [
         language='c++',
         extra_compile_args=["-std=c++11"],
         extra_link_args=['-shared']
-        )
+        )  
 ]
 
 setup(

@@ -20,6 +20,7 @@ pip install .
 <ul>
 	<li> C++ compiler </li>
 	<li> C++  Mathematical  Expression  Toolkit  Library (exprtk)</li>
+	<li> pybind11 </li>
 	<li> Numpy </li>
 	<li> Matplotlib </li>
 </ul>
