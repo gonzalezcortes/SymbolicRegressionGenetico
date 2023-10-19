@@ -47,41 +47,22 @@ print(f"Running with a population size of {population_size} and {generations} ge
 print("*------------*------------*------------")
 t2 = time.time()
 
-## Input Data
-rows_x, cols_x = X.shape
-rows_y, cols_y = y.shape
-#gspRNMV.Training.set_matrix_x(X.ravel().tolist(), rows_x, cols_x)
-#gspRNMV.Training.set_matrix_y(y.ravel().tolist(), rows_y, cols_y)
-
-arr = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
-
 trainer.set_matrix_x_from_numpy(X)
-
-#xx = np.array([1,2,3], dtype=np.float64)
-
-#list of 3 valus List[float] numpy declare it as float64
-
-#gspRNMV.Training.print_array(xx)
-#gspRNMV.Training.set_matrix_x_from_numpy(X_t)
-
-
-
+trainer.set_matrix_y_from_numpy(y)
 
 ## Parameters
 
-gspRNMV.Training.set_binary_operators = [ "+", "-", "*", "/" ]
-gspRNMV.Training.set_unary_operators = ["sin", "cos" , "exp"]
-gspRNMV.Training.set_terminals = ["X"]
-gspRNMV.Training.set_constants = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+trainer.set_binary_operators([ "+", "-", "*", "/" ])
+trainer.set_unary_operators(["sin", "cos" , "exp"])
+trainer.set_terminals(["var_one", "var_two"])
+trainer.set_constants(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
+
+trainer.print_operators()
+
+## Training
+sorted_expressions_2 = trainer.genetic_training(population_size, depth, generations, metric, elite_perc, mutation_prob, grow_prob)
 
 
-#sorted_expressions_2 = gspRNMV.genetic_training(population_size, depth, generations, metric, elite_perc, mutation_prob, grow_prob, X, target)
 
-#y2B =  gspRN.evaluate_fx(sorted_expressions_2[0][1], x)
-#print("Running time rpn", time.time()-t2)
-
-#print("*------------*------------*------------")
-#print("Expression A: ", sorted_expressions_2[0][1], "mse ", metrics.mse(y2B,y))
-#print("Running time total", time.time()-t0)
 
 

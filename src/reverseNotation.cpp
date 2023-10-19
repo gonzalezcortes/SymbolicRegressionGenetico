@@ -181,6 +181,8 @@ bool isConvertibleToDouble(const std::string& str) {
 
 
 
+
+
 namespace py = pybind11;
 
 PYBIND11_MODULE(reverseNotation, m) {
