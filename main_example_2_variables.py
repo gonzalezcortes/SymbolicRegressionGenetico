@@ -9,15 +9,25 @@ np.random.seed(8)
 
 t0 = time.time()
 
-data = np.genfromtxt("data/simple_dataset_2_variables.csv", delimiter=",", skip_header=1)
+#data = np.genfromtxt("data/simple_dataset_2_variables.csv", delimiter=",", skip_header=1)
+
+data = np.genfromtxt("data/simple_dataset_1_variable_A.csv", delimiter=",", skip_header=1)
+
+X = data[:, 0]
+y = data[:, 1]
+
+#Reshape to 2D
+X = X.reshape(-1, 1)
+y = y.reshape(-1, 1)
+print(X.shape)
 
 trainer = gspRNMV.Training()
 
 print(len(data))
 
-X = data[:, 0:2]
-target = data[:, 2]
-
+#X = data[:, 0:2]
+#target = data[:, 2]
+"""
 x = X[:, 0].reshape(50, 50)
 y = X[:, 1].reshape(50, 50)
 z = target.reshape(50, 50)
@@ -32,6 +42,7 @@ ax.set_zlabel('f(x, y)')
 ax.set_title('3D Surface Plot of f(x, y) = x^2 + y^2')
 
 #plt.show()
+"""
 
 population_size = 100
 depth = 3
@@ -54,15 +65,16 @@ trainer.set_matrix_y_from_numpy(y)
 
 trainer.set_binary_operators([ "+", "-", "*", "/" ])
 trainer.set_unary_operators(["sin", "cos" , "exp"])
-trainer.set_terminals(["var_one", "var_two"])
-trainer.set_constants(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
+trainer.set_terminals(["a"])
+trainer.set_constants(["1", "2"])
 
 trainer.print_operators()
 
 ## Training
+t1 = time.time()
 sorted_expressions_2 = trainer.genetic_training(population_size, depth, generations, metric, elite_perc, mutation_prob, grow_prob)
+print("Running time", time.time()-t1)
 
 
 
-
-
+print(sorted_expressions_2)

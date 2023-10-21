@@ -23,6 +23,7 @@ class Training {
 private:
     double** X_array;
     double** y_array;
+    std::vector<double> y_vector;
 
     int i, j, h, w;
     int rows_x, rows_y, cols_x, cols_y;
@@ -37,42 +38,62 @@ public:
     void set_matrix_x_from_numpy(py::array_t<double> input_array) {
 
         py::buffer_info buf_info = input_array.request();
-        h = buf_info.shape[0];
-        w = buf_info.shape[1];
+        rows_x = buf_info.shape[0];
+        cols_x = buf_info.shape[1];
 
         // Dynamic 2D array allocation
-        X_array = new double* [h];
-        for (int i = 0; i < h; ++i) {
-            X_array[i] = new double[w];
+        X_array = new double* [rows_x];
+        for (int i = 0; i < rows_x; ++i) {
+            X_array[i] = new double[cols_x];
         }
 
         // Pointer to numpy array data
         const double* ptr = static_cast<const double*>(buf_info.ptr);
 
         // Data into C++ array
-        for (int i = 0; i < h; ++i) {
+        for (int i = 0; i < cols_x; ++i) {
             for (int j = 0; j < w; ++j) {
                 X_array[i][j] = ptr[i * w + j];
             }
         }
     }
-
+    /*
     void set_matrix_y_from_numpy(py::array_t<double> input_array) {
 
         py::buffer_info buf_info = input_array.request();
-        h = buf_info.shape[0];
-        w = buf_info.shape[1];
+        rows_y = buf_info.shape[0];
+        cols_y = buf_info.shape[1];
 
-        y_array = new double* [h];
-        for (int i = 0; i < h; ++i) {
-            y_array[i] = new double[w];
+        y_array = new double* [rows_y];
+        for (int i = 0; i < rows_y; ++i) {
+            y_array[i] = new double[cols_y];
         }
 
         const double* ptr = static_cast<const double*>(buf_info.ptr);
 
-        for (int i = 0; i < h; ++i) {
-            for (int j = 0; j < w; ++j) {
-                y_array[i][j] = ptr[i * w + j];
+        for (int i = 0; i < rows_y; ++i) {
+            for (int j = 0; j < cols_y; ++j) {
+                y_array[i][j] = ptr[i * cols_y + j];
+            }
+        }
+    }
+    */
+
+
+
+    void set_matrix_y_from_numpy(py::array_t<double> input_array) {
+        py::buffer_info buf_info = input_array.request();
+        rows_y = buf_info.shape[0];
+        cols_y = buf_info.shape[1];
+
+        // Resize the 1D vector to fit all the 2D data
+        y_vector.resize(rows_y * cols_y);
+
+        const double* ptr = static_cast<const double*>(buf_info.ptr);
+
+        for (int i = 0; i < rows_y; ++i) {
+            for (int j = 0; j < cols_y; ++j) {
+                y_vector[i * cols_y + j] = ptr[i * cols_y + j];
             }
         }
     }
@@ -203,28 +224,61 @@ public:
     }
 
 
-    std::vector<double> evaluationArray(std::vector<double> x_values, std::vector<std::string> rpn) {
-        int n = x_values.size();
-        std::vector<double> evaluation_vector;
-        evaluation_vector.reserve(n);
+    std::vector<double> evaluationArray(std::vector<std::string> rpn) {
 
-        for (double x : x_values) {
-            std::vector<std::string> rpn_copy = rpn;
-            for (std::string& token : rpn_copy) {
-                if (token == "X") token = std::to_string(x);
+
+        std::vector<double> evaluation_vector; // vector with the evaluation of the RPN
+        evaluation_vector.reserve(rows_x); // reserve space for the vector
+
+        std::vector<std::string> rpn_copy = rpn; // copy the RPN
+        int n_terminals = terminals.size(); // number of terminals or variabales
+
+        // loop the row
+        for (int i = 0; i < rows_x; i++) {
+            for (std::string& token : rpn_copy) { // loop the RPN
+                int position = std::find(terminals.begin(), terminals.end(), token) - terminals.begin(); // find the position of the token in the terminals vector
+                if (position < n_terminals) {
+                    token = std::to_string(X_array[i][position]); // replace the token with the value of the dataset
+                }
+                else {token = token;} // if the token is not a terminal, keep it
             }
-            double result = this -> evaluateRPN2(rpn_copy);
-            // std::cout << "For X = " << x << ", result = " << result << std::endl;
-
-            if (std::isnan(result)) {
+            double result = this->evaluateRPN2(rpn_copy); // evaluate the RPN
+            if (std::isnan(result)) { // if the result is nan, set it to infinity
                 result = std::numeric_limits<double>::infinity();
             }
-            evaluation_vector.push_back(result);
+            evaluation_vector.push_back(result); // push the result in the evaluation vector
         }
+
+        /*
+        // print rpn
+        for (const auto& token2 : rpn) {
+            std::cout << token2 << ' ';
+        }
+        std::cout << std::endl;
+
+        // print rpn copy
+        for (const auto& token3 : rpn_copy) {
+			std::cout << token3 << ' ';
+		}
+        std::cout << std::endl;
+
+        // print evaluation vector
+        for (const auto& token4 : evaluation_vector) {
+            std::cout << token4 << ' ';
+        }
+        std::cout << std::endl;
+        std::cout << "#########" << std::endl;
+
+        */
+
         return evaluation_vector;
     }
 
-    std::vector<double> evaluate_fx_RPN2(std::string expression_str, std::vector<double> x_values) {
+    std::vector<double> evaluate_fx_RPN2(std::string expression_str) {
+
+        // print the expression
+        //std::cout << "expression " <<expression_str << std::endl;
+
         std::vector<std::string> replaced_expressions;
         std::string replaced_str = expression_str;
 
@@ -234,24 +288,111 @@ public:
         std::vector<std::string> rpn = infixToRPN2(iss);
 
         //print the RPN
-        
+        /*
         for (const auto& token : rpn) {
 			std::cout << token << ' ';
 		}
         std::cout << std::endl;
+        */
         
-        std::vector<double> evaluation_vector = { 1.0, 2.0, 3.0 };
-        // std::vector<double> evaluation_vector = this -> evaluationArray(x_values, rpn);
+        std::vector<double> evaluation_vector = this -> evaluationArray(rpn);
 
         return evaluation_vector;
 
     }
 
+    std::vector<std::string> get_elite(std::vector<std::pair<double, std::string>> sorted_expressions, double elite_perc) {
+
+        std::vector<std::string> elite_expressions;
+        size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * sorted_expressions.size()));
+
+        elite_expressions.reserve(elite_count);
+        for (size_t i = 0; i < elite_count; ++i) {
+            elite_expressions.push_back(sorted_expressions[i].second); // Get the string part of the pair
+        }
+
+        return elite_expressions;
+    }
+
+
+
+
+    std::string merge_expressions(const std::string& expr1, const std::string& expr2) {
+        std::string new_expr1 = expr1;
+        std::string new_expr2 = expr2;
+
+        if (expr1.front() != '(' && expr1.back() != ')') {
+            new_expr1 = "(" + expr1 + ")";
+        }
+        if (expr2.front() != '(' && expr2.back() != ')') {
+            new_expr2 = "(" + expr2 + ")";
+        }
+
+        size_t midpoint1 = new_expr1.find_last_of(')');
+        size_t midpoint2 = new_expr2.find_first_of('(');
+
+        std::string merged_expr = new_expr1.substr(0, midpoint1 + 1) + new_expr2.substr(midpoint2);
+
+        size_t merge_point = new_expr1.substr(0, midpoint1 + 1).size();
+
+        int n_binary_operators = binary_operators.size();
+        int indexReplace = rand() % n_binary_operators;
+        std::string replaceStr = binary_operators[indexReplace];
+
+        if (merged_expr[merge_point - 1] == ')' && merged_expr[merge_point] == '(') {
+            merged_expr.insert(merge_point, replaceStr);
+        }
+
+        return merged_expr;
+    }
+
+    std::vector<std::string> cross_expressions(const std::vector<std::string>& elite_expressions) {
+        std::vector<std::string> crossed_expressions;
+        int loop_limit = elite_expressions.size() - 1;
+
+        for (int i = 0; i < loop_limit; i++) {
+            std::string crossed_expr = this -> merge_expressions(elite_expressions[i], elite_expressions[i + 1]);
+            crossed_expressions.push_back(crossed_expr);
+        }
+
+        return crossed_expressions;
+    }
+
+    std::vector<std::string> get_new_population(std::vector<std::string>& crossed_expressions, std::vector<std::string>& elite_expressions, int population_size, int depth) {
+
+        std::vector<std::string> new_expressions;
+        new_expressions.reserve(population_size);
+
+
+        // elite expressions
+        for (const auto& elite_expr : elite_expressions) {
+            new_expressions.push_back(elite_expr);
+        }
+
+        // crossed over expressions
+        for (const auto& crossed_expr : crossed_expressions) {
+            new_expressions.push_back(crossed_expr);
+        }
+
+        //  new random expressions
+        while (new_expressions.size() < population_size) {
+            new_expressions.push_back(generate_random_expr(depth));
+        }
+
+        return new_expressions;
+    }
 
     std::vector<std::pair<double, std::string>> sorted_expressions(std::vector<std::string> expressions, std::string metric) {
 
-        std::vector<double> x_values = { 1.0, 2.0, 3.0 };
-        std::vector<double> y_values = { 1.0, 2.0, 3.0 };
+        //std::vector<double> y_values = { 1.0, 2.0, 3.0 };
+
+        //print expressions
+        /*
+        for (const auto& token : expressions) {
+			std::cout << token << '\n';
+		}
+        std::cout << std::endl;
+        */
 
         std::vector<std::pair<double, std::string>> mse_and_expression; // mse and expressions
         std::vector<std::pair<double, std::string>> elite_expressions;
@@ -260,8 +401,11 @@ public:
         for (const auto& expr : expressions) {
 
             // std::vector<double> scores = evaluate_fx(expr, x_values);
-            std::vector<double> scores = this -> evaluate_fx_RPN2(expr, x_values);
-            mse_score = mse(scores, y_values);
+            std::vector<double> scores = this -> evaluate_fx_RPN2(expr);
+
+
+            //mse_score = 1.0; // for now (delete)
+            mse_score = mse(y_vector, scores); ////
 
             // std::cout << mse_score << std::endl;
 
@@ -273,6 +417,141 @@ public:
 
         return mse_and_expression;
 
+    }
+
+    // Add term left
+    std::string add_term_left(std::string expr) {
+        // Generate a new term with depth 1 (either a unary operation or a simple binary operation)
+        std::string new_term = generate_random_expr(1);
+
+        // Add the new term to the existing expression using a random operator
+        std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
+
+        return "(" + new_term + " " + op + " " + expr + ")";
+    }
+
+    // Add term right
+    std::string add_term_right(std::string expr) {
+        // Generate a new term with depth 1 (either a unary operation or a simple binary operation)
+        std::string new_term = generate_random_expr(1);
+
+        // Add the new term to the existing expression using a random operator
+        std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
+
+        return "(" + expr + " " + op + " " + new_term + ")";
+    }
+
+    // Function to modify expression (binary and unary operators and terminals)
+    std::string modify_expression(std::string expr) {
+        //////////////////////
+        // binary_operators //
+        //////////////////////
+        int n_binary_operators = binary_operators.size();
+        int indexToSearch = rand() % n_binary_operators;
+        std::string toSearch = binary_operators[indexToSearch];
+
+        int indexReplace = rand() % n_binary_operators;
+        std::string replaceStr = binary_operators[indexReplace];
+
+        size_t pos = expr.find(toSearch);
+        if (pos != std::string::npos) {
+            expr.replace(pos, 1, replaceStr);
+        }
+        //////////////////////
+        // unary_operators //
+        //////////////////////
+
+        int n_unary_operators = unary_operators.size() ;
+        indexToSearch = rand() % n_unary_operators;
+        toSearch = unary_operators[indexToSearch];
+
+        indexReplace = rand() % n_unary_operators;
+        replaceStr = unary_operators[indexReplace];
+
+
+        pos = expr.find(toSearch);
+        if (pos != std::string::npos) {
+            // Replace it with "cos" function
+            expr.replace(pos, 3, replaceStr);
+        }
+        //////////////////////
+        // terminals //
+        //////////////////////
+        int n_terminals = terminals.size();
+        indexToSearch = rand() % n_terminals;
+        toSearch = terminals[indexToSearch];
+
+        indexReplace = rand() % n_terminals;
+        replaceStr = terminals[indexReplace];
+
+        pos = expr.find(toSearch);
+        if (pos != std::string::npos) {
+            expr.replace(pos, 1, replaceStr);
+        }
+        //////////////////////
+        // constants //
+        //////////////////////
+        int n_constants = constants.size();
+        indexToSearch = rand() % n_constants;
+        toSearch = constants[indexToSearch];
+
+        indexReplace = rand() % n_constants;
+        replaceStr = constants[indexReplace];
+
+        pos = expr.find(toSearch);
+        if (pos != std::string::npos) {
+            expr.replace(pos, 1, replaceStr);
+        }
+
+        return expr;
+    }
+
+    std::vector<std::string> mutation(const std::vector<std::string>& expressions, double mutation_prob, double elite_perc, double grow_prob) {
+
+        int population_size = expressions.size();
+        std::vector<std::string> new_expressions;
+        new_expressions.reserve(population_size);
+        std::string mutated_expr;
+
+        //print new_expressions
+
+
+
+        // Do not touch elite expressions
+        size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * expressions.size()));
+        for (size_t i = 0; i < elite_count; ++i) {
+            new_expressions.push_back(expressions[i]);
+        }
+
+        // Apply mutation with a certain probability
+        for (size_t i = elite_count; i < population_size; ++i) {
+            double rand_prob = ((double)rand() / (RAND_MAX));
+
+            // mutation if prob is lower than mutation_prob
+            if (rand_prob < mutation_prob) {
+                mutated_expr = modify_expression(expressions[i]);
+                new_expressions.push_back(mutated_expr);
+            }
+            else if (rand_prob < grow_prob) {
+                if ((double)rand() / (RAND_MAX) < 0.5) {
+                    mutated_expr = add_term_left(expressions[i]);
+                    new_expressions.push_back(mutated_expr);
+                }
+                else {
+                    mutated_expr = add_term_right(expressions[i]);
+                    new_expressions.push_back(mutated_expr);
+                }
+            }
+            else {
+                // mutated_expr = expressions[i];
+                new_expressions.push_back(expressions[i]);
+            }
+
+            // std::cout << mutated_expr << std::endl;
+        }
+
+
+        return new_expressions;
     }
 
 
@@ -287,11 +566,42 @@ public:
         std::vector<std::string> mutated_new_population;
 
         for (int gen = 0; gen < generations; gen++) {
+
+            /*
+            std::cout << "Generation: " << gen << std::endl;
+            for (const auto& token : expressions) { std::cout << token << '\n'; }
+            std::cout << std::endl;
+            std::cout << "##########" << std::endl;
+            */
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
 
+            // print sorted expressions
+
+
+            elite = this -> get_elite(sorted_expressions_vec, elite_perc);        
+            
+            cross_elite = this -> cross_expressions(elite);
+            ////std::cout << cross_elite[0] << std::endl;
+
+            new_population = this -> get_new_population(elite, cross_elite, population_size, depth);
+            mutated_new_population = this -> mutation(new_population, mutation_prob, elite_perc, grow_prob);
+            
+            //expressions = simplify_all_expr(mutated_new_population); (not implemented yet)
+            expressions = mutated_new_population;
+
+            
+
+            // print the expressions
+            /*
+            std::cout << "Get mutated population" << std::endl;
+            for (const auto& token : expressions) {std::cout << token << '\n';}
+            std::cout << std::endl;
+            std::cout << "#####FIN#####" << std::endl;*/
+
         }
-        // std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions(expressions, metric, x_values, y_values);
-        std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions_vec; ///////// for now, change
+        std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions(expressions, metric);
+
+        // std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions_vec; ///////// for now, change
         return final_expression_vec;
     }
 };
@@ -313,6 +623,11 @@ PYBIND11_MODULE(geneticSymbolicRegressionRN_MV, m) {
         .def("evaluationArray", &Training::evaluationArray, "function that evaluates the RPN")
         .def("evaluate_fx_RPN2", &Training::evaluate_fx_RPN2, "function that evaluates the RPN")
         .def("sorted_expressions", &Training::sorted_expressions, "function that sorts the expressions")
+        .def("get_elite", &Training::get_elite, "function that gets the elite")
+        .def("cross_expressions", &Training::cross_expressions, "function that crosses the expressions")
+        .def("merge_expressions", &Training::merge_expressions, "function that merges the expressions")
+        .def("mutation", &Training::mutation, "function that mutates the expressions")
+        .def("get_new_population", &Training::get_new_population, "function that gets the new population")
         .def("generate_random_expr", &Training::generate_random_expr, "function that generates a random expression")
         .def("create_initial_population", &Training::create_initial_population, "function that creates the initial population")
         .def("genetic_training", &Training::genetic_training, "function that runs the training of the symbolic regression using genetic training");
