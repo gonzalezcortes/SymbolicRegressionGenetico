@@ -407,6 +407,8 @@ std::vector<std::pair<double, std::string>> genetic_training(int population_size
     std::vector<std::string> mutated_new_population;
 
 
+    
+
     for (int gen = 0; gen < generations; gen++) {
 
 

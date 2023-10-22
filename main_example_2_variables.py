@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 from genetico import geneticSymbolicRegression as gsp
-from genetico import geneticSymbolicRegressionRN as gspRN
+#from genetico import geneticSymbolicRegressionRN as gspRN
 from genetico import geneticSymbolicRegressionRN_MV as gspRNMV
 from genetico import metrics 
 np.random.seed(8)
@@ -16,9 +16,15 @@ data = np.genfromtxt("data/simple_dataset_1_variable_A.csv", delimiter=",", skip
 X = data[:, 0]
 y = data[:, 1]
 
+#X as double 64
+X = X.astype(np.float64)
+y = y.astype(np.float64)
+
 #Reshape to 2D
 X = X.reshape(-1, 1)
 y = y.reshape(-1, 1)
+
+
 print(X.shape)
 
 trainer = gspRNMV.Training()
@@ -44,11 +50,11 @@ ax.set_title('3D Surface Plot of f(x, y) = x^2 + y^2')
 #plt.show()
 """
 
-population_size = 100
+population_size = 100 #100
 depth = 3
 generations = 100 #100
-elite_perc = 0.10
-mutation_prob = 0.10
+elite_perc = 0.10 #0.10
+mutation_prob = 0.10 #0.10
 grow_prob = 0.01 #0.001
 metric = "mse"
 
@@ -56,7 +62,7 @@ metric = "mse"
 print(f"Running with a population size of {population_size} and {generations} generations.")
 
 print("*------------*------------*------------")
-t2 = time.time()
+
 
 trainer.set_matrix_x_from_numpy(X)
 trainer.set_matrix_y_from_numpy(y)
@@ -65,10 +71,12 @@ trainer.set_matrix_y_from_numpy(y)
 
 trainer.set_binary_operators([ "+", "-", "*", "/" ])
 trainer.set_unary_operators(["sin", "cos" , "exp"])
-trainer.set_terminals(["a"])
-trainer.set_constants(["1", "2"])
+trainer.set_terminals(["X"])
+trainer.set_constants(["1", "2", "3"])
 
-trainer.print_operators()
+##trainer.print_operators()
+
+t2 = time.time()
 
 ## Training
 t1 = time.time()
@@ -76,5 +84,5 @@ sorted_expressions_2 = trainer.genetic_training(population_size, depth, generati
 print("Running time", time.time()-t1)
 
 
-
-print(sorted_expressions_2)
+print("*------------*------------*------------")
+print(sorted_expressions_2[0][1], " mse: ", sorted_expressions_2[0][0])
