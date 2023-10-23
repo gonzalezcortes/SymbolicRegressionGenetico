@@ -9,19 +9,19 @@ np.random.seed(8)
 
 t0 = time.time()
 
-#data = np.genfromtxt("data/simple_dataset_2_variables.csv", delimiter=",", skip_header=1)
+data = np.genfromtxt("data/simple_dataset_2_variables.csv", delimiter=",", skip_header=1)
 
-data = np.genfromtxt("data/simple_dataset_1_variable_A.csv", delimiter=",", skip_header=1)
+#data = np.genfromtxt("data/simple_dataset_1_variable_A.csv", delimiter=",", skip_header=1)
 
-X = data[:, 0]
-y = data[:, 1]
+X = data[:, 0:2]
+y = data[:, 2]
 
 #X as double 64
 X = X.astype(np.float64)
 y = y.astype(np.float64)
 
 #Reshape to 2D
-X = X.reshape(-1, 1)
+X = X.reshape(-1, 2)
 y = y.reshape(-1, 1)
 
 
@@ -50,12 +50,12 @@ ax.set_title('3D Surface Plot of f(x, y) = x^2 + y^2')
 #plt.show()
 """
 
-population_size = 100 #100
+population_size = 1000 #100
 depth = 3
-generations = 100 #100
+generations = 10 #100
 elite_perc = 0.10 #0.10
 mutation_prob = 0.10 #0.10
-grow_prob = 0.01 #0.001
+grow_prob = 0 #0.001
 metric = "mse"
 
 
@@ -69,10 +69,13 @@ trainer.set_matrix_y_from_numpy(y)
 
 ## Parameters
 
-trainer.set_binary_operators([ "+", "-", "*", "/" ])
-trainer.set_unary_operators(["sin", "cos" , "exp"])
-trainer.set_terminals(["X"])
-trainer.set_constants(["1", "2", "3"])
+trainer.set_binary_operators([ "+", "-", "*", "/", "^"]) #"+", "-", "*", "/", "^"
+trainer.set_unary_operators(["exp"])
+#trainer.set_unary_operators(["sin"])
+trainer.set_terminals(["X","Y"])
+trainer.set_constants(["0.5","1","2","3","4","5","6","7","8"])
+
+#z = x^2 + y^2
 
 ##trainer.print_operators()
 

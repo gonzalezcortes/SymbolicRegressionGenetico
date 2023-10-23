@@ -18,7 +18,7 @@ std::string rpnToInfix(const std::vector<std::string>& rpn) {
             std::string expr = "(" + op1 + " " + token + " " + op2 + ")";
             stack.push(expr);
         }
-        else if (token == "sin" || token == "cos" || token == "exp") {
+        else if (token == "sin" || token == "cos" || token == "exp" ) {
             std::string op = stack.top(); stack.pop();
             std::string expr = token + "(" + op + ")";
             stack.push(expr);
@@ -34,9 +34,9 @@ std::string rpnToInfix(const std::vector<std::string>& rpn) {
 int precedence2(const std::string& op) {
     if (op == "+" || op == "-")
         return 1;
-    if (op == "*" || op == "/")
+    if (op == "^" || op == "*" || op == "/")
         return 2;
-    if (op == "^" || op == "sin" || op == "cos" || op == "exp")
+    if (op == "sin" || op == "cos" || op == "exp" )
         return 3;
     if (op == "u-")  // unary minus
         return 4;
@@ -68,7 +68,7 @@ std::vector<std::string> infixToRPN2(std::istringstream& infix) {
         if (token == "-" && (lastToken == "(" || precedence2(lastToken) > 0)) {
             operators.push("u-");
         }
-        else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
+        else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp" ) {
             while (!operators.empty() && precedence2(operators.top()) >= precedence2(token)) {
                 rpn.push_back(operators.top());
                 operators.pop();

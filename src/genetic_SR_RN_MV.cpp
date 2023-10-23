@@ -201,127 +201,6 @@ public:
     }
 
 
-    double evaluateRPN2(const std::vector<std::string>& rpn) {
-        std::stack<double> values;
-        for (const auto& token : rpn) {
-            if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^") {
-                double b = values.top(); values.pop();
-                double a = values.top(); values.pop();
-                double result = 0;
-                if (token == "+") result = a + b;
-                else if (token == "-") result = a - b;
-                else if (token == "*") result = a * b;
-                else if (token == "/") {
-                    if (b == 0) {
-                        // std::cerr << "Division by zero\n";
-                        return -1;
-                    }
-                    result = a / b;
-                }
-                else if (token == "^") result = std::pow(a, b);
-                values.push(result);
-            }
-            else if (token == "u-") {
-                double a = values.top(); values.pop();
-                values.push(-a);
-            }
-
-            else if (token == "sin") {
-                double operand = values.top(); values.pop();
-                values.push(sin(operand));
-            }
-
-            else if (token == "cos") {
-                double operand = values.top(); values.pop();
-                values.push(cos(operand));
-            }
-
-            else if (token == "exp") {
-                double operand = values.top(); values.pop();
-                values.push(exp(operand));
-            }
-
-
-            else {
-                values.push(std::stod(token));
-            }
-        }
-        return values.top();
-    }
-
-
-    std::vector<double> evaluationArray(std::vector<std::string> rpn) {
-
-        // print the RPN
-        std::cout << "rpn";
-        for (const auto& tokenr : rpn) {
-			std::cout << tokenr << ' ';
-		}
-        std::cout << std::endl;
-        
-        std::vector<double> evaluation_vector; // vector with the evaluation of the RPN
-        evaluation_vector.reserve(rows_x); // reserve space for the vector
-
-        std::vector<std::string> rpn_copy = rpn; // copy the RPN
-        int n_terminals = terminals.size(); // number of terminals or variabales
-
-        // loop the row
-        for (int i = 0; i < rows_x; i++) {
-            for (std::string& token : rpn_copy) { // loop the RPN
-                int position = std::find(terminals.begin(), terminals.end(), token) - terminals.begin(); // find the position of the token in the terminals vector
-
-                std::cout << " i " << i << "position " << position << ' ';
-
-                if (position < n_terminals) {
-                    int position_index = position-1;
-                    double value = X_array[i][position_index]; // get the value of the dataset
-                    std::cout << " token " << token << " cambiado po value " << value << ' ';
-                    token = std::to_string(value); // replace the token with the value of the dataset
-                }
-                
-                else {token = token;} // if the token is not a terminal, keep it
-
-                std::cout << std::endl;
-            }
-
-            //print rpn
-            /*
-            for (const auto& token2 : rpn) {
-				std::cout << token2 << ' ';
-			}
-            std::cout << std::endl;*/
-
-            double result = this->evaluateRPN2(rpn_copy); // evaluate the RPN
-            if (std::isnan(result)) { // if the result is nan, set it to infinity
-                result = std::numeric_limits<double>::infinity();
-            }
-            evaluation_vector.push_back(result); // push the result in the evaluation vector
-        }
-
-        /*
-        // print rpn
-        for (const auto& token2 : rpn) {
-            std::cout << token2 << ' ';
-        }
-        std::cout << std::endl;
-
-        // print rpn copy
-        for (const auto& token3 : rpn_copy) {
-			std::cout << token3 << ' ';
-		}
-        std::cout << std::endl;
-
-        // print evaluation vector
-        for (const auto& token4 : evaluation_vector) {
-            std::cout << token4 << ' ';
-        }
-        std::cout << std::endl;
-        std::cout << "#########" << std::endl;
-
-        */
-
-        return evaluation_vector;
-    }
 
     std::vector<double> evaluationArray2(std::vector<std::string> rpn) {
         
@@ -359,8 +238,8 @@ public:
                 std::cout << token << ' ';
             }
             */
-
-            double result = this->evaluateRPN2(rpn_copy); // evaluate the RPN
+            
+            double result = evaluateRPN2(rpn_copy); // evaluate the RPN
             if (std::isnan(result)) { // if the result is nan, set it to infinity
                 result = std::numeric_limits<double>::infinity();
             }
@@ -381,9 +260,11 @@ public:
         std::vector<std::string> replaced_expressions; // vector with the replaced expressions
         std::string replaced_str = expression_str; // string with the replaced expression
 
+        // std::cout << "Add spaces" << std::endl;
         std::string infix = addSpaces(replaced_str); // add spaces to the expression
         std::istringstream iss(infix); // create a string stream with the expression
 
+        // std::cout << "infix RPN" << std::endl;
         std::vector<std::string> rpn = infixToRPN2(iss); // convert the expression to RPN
 
         //print the RPN
@@ -394,7 +275,7 @@ public:
         std::cout << std::endl;
         */
         
-
+        // std::cout << "Evaluation Array" << std::endl;
         std::vector<double> evaluation_vector = this -> evaluationArray2(rpn);
 
         return evaluation_vector;
@@ -453,8 +334,13 @@ public:
         int loop_limit = elite_expressions.size() - 1;
 
         for (int i = 0; i < loop_limit; i++) {
+
+            std::cout << "elite expression 1 " << elite_expressions[i] << " ";
+            std::cout << "elite expression 2 " << elite_expressions[i + 1] << " ";
+
             std::string crossed_expr = this -> merge_expressions(elite_expressions[i], elite_expressions[i + 1]);
             crossed_expressions.push_back(crossed_expr);
+            std::cout << " crossed expression " << crossed_expr << std::endl;
         }
 
         return crossed_expressions;
@@ -502,6 +388,7 @@ public:
         for (const auto& expr : expressions) {
 
             // std::vector<double> scores = evaluate_fx(expr, x_values);
+            // std::cout << "Evaluate fx RPN 2" << std::endl;
             std::vector<double> scores = this -> evaluate_fx_RPN2(expr);
 
             // print expression and scores
@@ -713,12 +600,14 @@ public:
         for (int gen = 0; gen < generations; gen++) {
 
             
-            // std::cout << "Generation: " << gen << std::endl;
-            // for (const auto& token : expressions) { std::cout << token << '\n'; }
-            // std::cout << std::endl;
-            // std::cout << "##########" << std::endl;
-            
+            std::cout << "Generation: " << gen << std::endl;
+            /*
+            for (const auto& token : expressions) { std::cout << token << '\n'; }
+            std::cout << std::endl;
+            std::cout << "##########" << std::endl;
+            */
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
+            // std::cout << "sorted" << std::endl;
             elite = this -> get_elite(sorted_expressions_vec, elite_perc); 
             //print elite
             
@@ -733,6 +622,9 @@ public:
             */
 
             cross_elite = this -> cross_expressions(elite);
+
+            // print size of the cross_elite in average
+
             
             new_population = this -> get_new_population(elite, cross_elite, population_size, depth);
             mutated_new_population = this -> mutation(new_population, mutation_prob, elite_perc, grow_prob);
@@ -768,7 +660,6 @@ PYBIND11_MODULE(geneticSymbolicRegressionRN_MV, m) {
         .def("set_constants", &Training::set_constants, "Set constants")
         .def("print_operators", &Training::print_operators, "Print the operators")
         .def("random_int", &Training::random_int, "function that returns a random integer between min and max")
-        .def("evaluateRPN2", &Training::evaluateRPN2, "function that evaluates the RPN")
         .def("evaluationArray2", &Training::evaluationArray2, "function that evaluates the RPN")
         .def("evaluate_fx_RPN2", &Training::evaluate_fx_RPN2, "function that evaluates the RPN")
         .def("sorted_expressions", &Training::sorted_expressions, "function that sorts the expressions")
