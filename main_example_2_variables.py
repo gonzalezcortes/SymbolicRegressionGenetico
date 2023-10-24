@@ -50,9 +50,9 @@ ax.set_title('3D Surface Plot of f(x, y) = x^2 + y^2')
 #plt.show()
 """
 
-population_size = 1000 #100
+population_size = 100#100
 depth = 3
-generations = 10 #100
+generations = 100 #100
 elite_perc = 0.10 #0.10
 mutation_prob = 0.10 #0.10
 grow_prob = 0 #0.001

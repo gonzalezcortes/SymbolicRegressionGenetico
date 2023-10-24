@@ -284,12 +284,12 @@ public:
 
     std::vector<std::string> get_elite(std::vector<std::pair<double, std::string>> sorted_expressions, double elite_perc) {
 
-        std::vector<std::string> elite_expressions;
-        size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * sorted_expressions.size()));
+        std::vector<std::string> elite_expressions; 
+        size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * sorted_expressions.size())); // number of elite expressions
 
         elite_expressions.reserve(elite_count);
-        for (size_t i = 0; i < elite_count; ++i) {
-            elite_expressions.push_back(sorted_expressions[i].second); // Get the string part of the pair
+        for (size_t i = 0; i < elite_count; ++i) { // for each elite expression
+            elite_expressions.push_back(sorted_expressions[i].second); // push the expression in the elite expressions vector
         }
 
         return elite_expressions;
@@ -329,18 +329,101 @@ public:
         return merged_expr;
     }
 
+
+    std::string merge_expressions2(const std::string& expr1, const std::string& expr2) {
+
+        // from binary_operators pick one random operator
+        int n_binary_operators = binary_operators.size();
+        int indexReplace0 = rand() % n_binary_operators;
+        std::string replaceStr0 = binary_operators[indexReplace0];
+
+        std::vector<std::string> binary_operators_1;
+        std::vector<std::string> binary_operators_2;
+      
+
+        for (const std::string& bop : binary_operators) {
+            if (expr1.find(bop) != std::string::npos) {
+                binary_operators_1.push_back(bop);
+            }
+            if (expr2.find(bop) != std::string::npos) {
+                binary_operators_2.push_back(bop);
+            }
+        }
+        
+        // if terminals_1 is not empty
+        if (!binary_operators_1.empty() && !binary_operators_2.empty()) {
+			int indexReplace1 = rand() % binary_operators_1.size();
+			std::string replaceStr1 = binary_operators_1[indexReplace1];
+            
+            int indexReplace2 = rand() % binary_operators_2.size();
+            std::string replaceStr2 = binary_operators_2[indexReplace2];
+
+
+			std::size_t pos1 = expr1.find(replaceStr1); 
+			std::size_t pos2 = expr2.find(replaceStr2);
+
+
+            std::string term1a = expr1.substr(0, pos1);
+            std::string term1b = expr1.substr(pos1 + 1);
+                
+            std::string term2a = expr2.substr(0, pos2);
+            std::string term2b = expr2.substr(pos2 + 1);
+
+            //std::cout << "\n" << std::endl;
+
+            //std::cout << "term1a " << pos1 << " " << term1a << " ";
+            //std::cout << "term2b " << pos2 << " " << term2b << " ";
+            //std::cout << std::endl;
+            
+            std::string child = term1a + replaceStr0 + term2b;
+
+            // count the '(' and ')' in the child
+            int count_open = std::count(child.begin(), child.end(), '(');
+            int count_close = std::count(child.begin(), child.end(), ')');
+            // std::cout << "count open " << count_open << " count close " << count_close << std::endl;
+
+            // Fill the missing '(' or ')' in the child
+            if (count_open > count_close) {
+                // Too many opening parentheses, add closing ones
+                for (int i = 0; i < (count_open - count_close); ++i) {
+                    child += ')';
+                }
+            }
+            else if (count_close > count_open) {
+                // Too many closing parentheses, add opening ones at the beginning
+                for (int i = 0; i < (count_close - count_open); ++i) {
+                    child = '(' + child;
+                }
+            }
+
+            return child;
+
+		}
+
+        else {
+            // with 50% of chance 
+            if ((double)rand() / (RAND_MAX) < 0.5) {
+				return expr1;
+			}
+            else {
+				return expr2;
+			}
+        }
+    }
+
     std::vector<std::string> cross_expressions(const std::vector<std::string>& elite_expressions) {
         std::vector<std::string> crossed_expressions;
         int loop_limit = elite_expressions.size() - 1;
 
         for (int i = 0; i < loop_limit; i++) {
 
-            std::cout << "elite expression 1 " << elite_expressions[i] << " ";
-            std::cout << "elite expression 2 " << elite_expressions[i + 1] << " ";
+            // std::cout << "elite expression 1 " << elite_expressions[i] << " ";
+            // std::cout << "elite expression 2 " << elite_expressions[i + 1] << " ";
 
-            std::string crossed_expr = this -> merge_expressions(elite_expressions[i], elite_expressions[i + 1]);
+            std::string crossed_expr = this -> merge_expressions2(elite_expressions[i], elite_expressions[i + 1]);
             crossed_expressions.push_back(crossed_expr);
-            std::cout << " crossed expression " << crossed_expr << std::endl;
+            
+            // std::cout << " crossed expression " << crossed_expr << std::endl;
         }
 
         return crossed_expressions;
