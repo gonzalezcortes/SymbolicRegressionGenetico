@@ -25,9 +25,16 @@ X = X.reshape(-1, 2)
 y = y.reshape(-1, 1)
 
 
+
+
+
 print(X.shape)
 
 trainer = gspRNMV.Training()
+
+
+#trainer.testCombineLikeTerms()
+
 
 print(len(data))
 

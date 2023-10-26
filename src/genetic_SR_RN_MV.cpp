@@ -2,6 +2,8 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
+#include <pybind11/embed.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,6 +36,9 @@ private:
     std::vector<std::string> unary_operators;
     std::vector<std::string> terminals;
     std::vector<std::string> constants;
+
+    py::object sympify = py::module::import("sympy").attr("sympify");
+    py::object simpify = py::module();
 
 public:
 
@@ -728,6 +733,26 @@ public:
         // std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions_vec; ///////// for now, change
         return final_expression_vec;
     }
+
+    std::string combineLikeTerms(std::string infix_expression) {
+        //py::scoped_interpreter guard{}; // start the interpreter
+
+        // py::object sympify = py::module::import("sympy").attr("sympify");
+        // py::object simpify = py::module()
+        py::object simplified_expression = sympify(infix_expression);
+
+        return py::str(simplified_expression);
+    }
+
+    void testCombineLikeTerms() {
+        // std::string reduced_expression = "((2 * b) + (3 + 3)) - d"; // Assume you have a function to convert RPN to infix
+
+        std::string reduced_expression = "(((((7) + ((Y) + ((Y^2) * (Y))) + (((8) + (0.5)) - (Y))) + (((8) + (0.5)) + (Y))) + (((8) - (Y))) - (X)))";
+        std::cout << "Reduced expression (infix): " << reduced_expression << std::endl;
+
+        std::string combined_expression = combineLikeTerms(reduced_expression);
+        std::cout << "Combined like terms: " << combined_expression << std::endl;
+    }
 };
 
 
@@ -735,6 +760,7 @@ PYBIND11_MODULE(geneticSymbolicRegressionRN_MV, m) {
 
     py::class_<Training>(m, "Training")
         .def(py::init<>())
+        .def("testCombineLikeTerms", &Training::testCombineLikeTerms, "Test combine like terms")
         .def("set_matrix_x_from_numpy", &Training::set_matrix_x_from_numpy, "Set the matrix x from numpy array")
         .def("set_matrix_y_from_numpy", &Training::set_matrix_y_from_numpy, "Set the matrix y from numpy array")
         .def("set_binary_operators", &Training::set_binary_operators, "Set binary operators")
