@@ -58,7 +58,7 @@ ax.set_title('3D Surface Plot of f(x, y) = x^2 + y^2')
 """
 
 population_size = 100#100
-depth = 3
+depth = 5
 generations = 100 #100
 elite_perc = 0.10 #0.10
 mutation_prob = 0.10 #0.10
@@ -77,7 +77,7 @@ trainer.set_matrix_y_from_numpy(y)
 ## Parameters
 
 trainer.set_binary_operators([ "+", "-", "*", "/", "^"]) #"+", "-", "*", "/", "^"
-trainer.set_unary_operators(["exp"])
+trainer.set_unary_operators(["cos", "sin"])
 #trainer.set_unary_operators(["sin"])
 trainer.set_terminals(["X","Y"])
 trainer.set_constants(["0.5","1","2","3","4","5","6","7","8"])

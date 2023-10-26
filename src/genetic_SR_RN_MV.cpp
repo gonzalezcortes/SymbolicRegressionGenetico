@@ -307,14 +307,14 @@ public:
         std::string new_expr1 = expr1;
         std::string new_expr2 = expr2;
 
-        /*
+        
         if (expr1.front() != '(' && expr1.back() != ')') {
             new_expr1 = "(" + expr1 + ")";
         }
         if (expr2.front() != '(' && expr2.back() != ')') {
             new_expr2 = "(" + expr2 + ")";
         }
-        */
+        
 
         size_t midpoint1 = new_expr1.find_last_of(')');
         size_t midpoint2 = new_expr2.find_first_of('(');
@@ -421,17 +421,26 @@ public:
         int loop_limit = elite_expressions.size() - 1;
 
         for (int i = 0; i < loop_limit; i++) {
-
-            // std::cout << "elite expression 1 " << elite_expressions[i] << " ";
-            // std::cout << "elite expression 2 " << elite_expressions[i + 1] << " ";
+            // print the elite expressions
+            
+            std::cout << "elite expression 1 " << elite_expressions[i] << " ";
+            std::cout << "elite expression 2 " << elite_expressions[i + 1] << " ";
+            std::cout << std::endl;
 
             std::string crossed_expr = this -> merge_expressions2(elite_expressions[i], elite_expressions[i + 1]);
-            crossed_expressions.push_back(crossed_expr);
             
-            // std::cout << " crossed expression " << crossed_expr << std::endl;
+            
+            std::cout << " crossed expression " << crossed_expr << std::endl;
+            std::string cross_mini = combineLikeTerms(crossed_expr);
+            std::cout << " crossed expression mini" << cross_mini << std::endl;
+
+            // crossed_expressions.push_back(crossed_expr);
+            crossed_expressions.push_back(cross_mini);
+
         }
 
         return crossed_expressions;
+
     }
 
     std::vector<std::string> get_new_population(std::vector<std::string>& crossed_expressions, std::vector<std::string>& elite_expressions, int population_size, int depth) {
@@ -462,12 +471,12 @@ public:
 
 
         //print expressions
-        /*
+        
         for (const auto& token : expressions) {
 			std::cout << token << '\n';
 		}
         std::cout << std::endl;
-        */
+        
 
         std::vector<std::pair<double, std::string>> mse_and_expression; // mse and expressions
         std::vector<std::pair<double, std::string>> elite_expressions;
@@ -689,13 +698,14 @@ public:
 
             
             std::cout << "Generation: " << gen << std::endl;
-            /*
+            
             for (const auto& token : expressions) { std::cout << token << '\n'; }
             std::cout << std::endl;
             std::cout << "##########" << std::endl;
-            */
+            
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
             // std::cout << "sorted" << std::endl;
+            std::cout << "get elite " << std::endl;
             elite = this -> get_elite(sorted_expressions_vec, elite_perc); 
             //print elite
             
@@ -734,14 +744,31 @@ public:
         return final_expression_vec;
     }
 
+    std::string replaceDoubleAsterisks(std::string str) {
+        size_t pos = 0;
+        while ((pos = str.find("**", pos)) != std::string::npos) {
+            str.replace(pos, 2, " ^ ");
+            pos += 1;  // Move past the replaced character.
+        }
+        return "(" + str + ")";
+    }
+
+
+
     std::string combineLikeTerms(std::string infix_expression) {
         //py::scoped_interpreter guard{}; // start the interpreter
 
         // py::object sympify = py::module::import("sympy").attr("sympify");
         // py::object simpify = py::module()
         py::object simplified_expression = sympify(infix_expression);
+        // convert to C++
+        std::string simplified_expression_str = py::str(simplified_expression);
+        // std::cout << simplified_expression_str << std::endl;
 
-        return py::str(simplified_expression);
+        std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
+        // std::cout << ses2 << std::endl;
+
+        return py::str(ses2);
     }
 
     void testCombineLikeTerms() {
