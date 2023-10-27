@@ -74,29 +74,6 @@ public:
             std::cout << std::endl;
         }*/
     }
-    /*
-    void set_matrix_y_from_numpy(py::array_t<double> input_array) {
-
-        py::buffer_info buf_info = input_array.request();
-        rows_y = buf_info.shape[0];
-        cols_y = buf_info.shape[1];
-
-        y_array = new double* [rows_y];
-        for (int i = 0; i < rows_y; ++i) {
-            y_array[i] = new double[cols_y];
-        }
-
-        const double* ptr = static_cast<const double*>(buf_info.ptr);
-
-        for (int i = 0; i < rows_y; ++i) {
-            for (int j = 0; j < cols_y; ++j) {
-                y_array[i][j] = ptr[i * cols_y + j];
-            }
-        }
-    }
-    */
-
-
 
     void set_matrix_y_from_numpy(py::array_t<double> input_array) {
         py::buffer_info buf_info = input_array.request();
@@ -127,8 +104,6 @@ public:
         */
 
     }
-
-
 
     void set_binary_operators(std::vector<std::string> new_binary_operators) {
         binary_operators = new_binary_operators;
@@ -173,7 +148,6 @@ public:
         std::cout << std::endl;  
 	}
 
-
     std::string generate_random_expr(int depth) {
         if (depth > 0 && ((double)rand() / (RAND_MAX)) < 0.5) {
             // 50% chance to choose unary or binary operator
@@ -204,8 +178,6 @@ public:
         }
         return population;
     }
-
-
 
     std::vector<double> evaluationArray2(std::vector<std::string> rpn) {
         
@@ -256,7 +228,6 @@ public:
         return evaluation_vector;
     }
 
-
     std::vector<double> evaluate_fx_RPN2(std::string expression_str) {
 
         // print the expression
@@ -299,41 +270,6 @@ public:
 
         return elite_expressions;
     }
-
-
-
-
-    std::string merge_expressions(const std::string& expr1, const std::string& expr2) {
-        std::string new_expr1 = expr1;
-        std::string new_expr2 = expr2;
-
-        
-        if (expr1.front() != '(' && expr1.back() != ')') {
-            new_expr1 = "(" + expr1 + ")";
-        }
-        if (expr2.front() != '(' && expr2.back() != ')') {
-            new_expr2 = "(" + expr2 + ")";
-        }
-        
-
-        size_t midpoint1 = new_expr1.find_last_of(')');
-        size_t midpoint2 = new_expr2.find_first_of('(');
-
-        std::string merged_expr = new_expr1.substr(0, midpoint1 + 1) + new_expr2.substr(midpoint2);
-
-        size_t merge_point = new_expr1.substr(0, midpoint1 + 1).size();
-
-        int n_binary_operators = binary_operators.size();
-        int indexReplace = rand() % n_binary_operators;
-        std::string replaceStr = binary_operators[indexReplace];
-
-        if (merged_expr[merge_point - 1] == ')' && merged_expr[merge_point] == '(') {
-            merged_expr.insert(merge_point, replaceStr);
-        }
-
-        return merged_expr;
-    }
-
 
     std::string merge_expressions2(const std::string& expr1, const std::string& expr2) {
 
@@ -469,41 +405,16 @@ public:
 
     std::vector<std::pair<double, std::string>> sorted_expressions(std::vector<std::string> expressions, std::string metric) {
 
-
-        //print expressions
-        
-        for (const auto& token : expressions) {
-			std::cout << token << '\n';
-		}
-        std::cout << std::endl;
-        
-
         std::vector<std::pair<double, std::string>> mse_and_expression; // mse and expressions
         std::vector<std::pair<double, std::string>> elite_expressions;
         double mse_score;
 
         for (const auto& expr : expressions) {
-
-            // std::vector<double> scores = evaluate_fx(expr, x_values);
-            // std::cout << "Evaluate fx RPN 2" << std::endl;
+            std::cout << "Expression: " << expr << " ";
             std::vector<double> scores = this -> evaluate_fx_RPN2(expr);
-
-            // print expression and scores
-            /*
-            std::cout << "expression: " << expr << std::endl;
-            for (const auto& token : scores) {
-				std::cout << token << ' ';
-			}
-            */
-
-            //mse_score = 1.0; // for now (delete)
-            mse_score = mse(y_vector, scores); ////
-
-            //std::cout << "mse: " << mse_score << std::endl;
-
-
-            // reverse the RPN
+            mse_score = mse(y_vector, scores);
             mse_and_expression.emplace_back(mse_score, expr);
+            std::cout << "mse: " << mse_score << std::endl;
         }
 
         std::sort(mse_and_expression.begin(), mse_and_expression.end());
@@ -512,7 +423,6 @@ public:
 
     }
 
-    // Add term left
     std::string add_term_left(std::string expr) {
         // Generate a new term with depth 1 (either a unary operation or a simple binary operation)
         std::string new_term = generate_random_expr(1);
@@ -523,7 +433,6 @@ public:
         return "(" + new_term + " " + op + " " + expr + ")";
     }
 
-    // Add term right
     std::string add_term_right(std::string expr) {
         // Generate a new term with depth 1 (either a unary operation or a simple binary operation)
         std::string new_term = generate_random_expr(1);
@@ -534,7 +443,6 @@ public:
         return "(" + expr + " " + op + " " + new_term + ")";
     }
 
-    // Function to modify expression (binary and unary operators and terminals)
     std::string modify_expression(std::string expr) {
         int n_binary_operators = binary_operators.size();
         int n_unary_operators = unary_operators.size();
@@ -683,6 +591,46 @@ public:
         return new_expressions;
     }
 
+    std::string replaceDoubleAsterisks(std::string str) {
+        size_t pos = 0;
+        while ((pos = str.find("**", pos)) != std::string::npos) {
+            str.replace(pos, 2, " ^ ");
+            pos += 1;  // Move past the replaced character.
+        }
+        return "(" + str + ")";
+    }
+
+    std::string combineLikeTerms(std::string infix_expression) {
+        std::string simplified_expression_str;
+        try {
+            //py::scoped_interpreter guard{}; // start the interpreter
+
+            // py::object sympify = py::module::import("sympy").attr("sympify");
+            // py::object simpify = py::module()
+            py::object simplified_expression = sympify(infix_expression);
+            // convert to C++
+            simplified_expression_str = py::str(simplified_expression);
+            // std::cout << simplified_expression_str << std::endl;
+
+
+
+
+        }
+        catch (py::error_already_set& e) {
+            // Handle exception (perhaps syntax error in expression)
+            std::cout << "Error: " << e.what() << std::endl;
+
+            // Call generate_random_expr(3) to get another expression string
+            // Here, I am assuming that generate_random_expr is a function that you have defined elsewhere
+            std::string simplified_expression_str = generate_random_expr(3);
+            std::cout << "simplified expression " << simplified_expression_str << std::endl;
+
+            //std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
+        }
+        std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
+        // std::cout << ses2 << std::endl;
+        return py::str(ses2);
+    }
 
     std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc,
         double mutation_prob, double grow_prob) {
@@ -699,9 +647,9 @@ public:
             
             std::cout << "Generation: " << gen << std::endl;
             
-            for (const auto& token : expressions) { std::cout << token << '\n'; }
-            std::cout << std::endl;
-            std::cout << "##########" << std::endl;
+            // for (const auto& token : expressions) { std::cout << token << '\n'; }
+            //std::cout << std::endl;
+            //std::cout << "##########" << std::endl;
             
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
             // std::cout << "sorted" << std::endl;
@@ -718,7 +666,7 @@ public:
                 std::cout << "mse: " << mse_score2 << std::endl; // borrar
             }
             */
-
+            std::cout << "cross_expressions " << std::endl;
             cross_elite = this -> cross_expressions(elite);
 
             // print size of the cross_elite in average
@@ -744,42 +692,7 @@ public:
         return final_expression_vec;
     }
 
-    std::string replaceDoubleAsterisks(std::string str) {
-        size_t pos = 0;
-        while ((pos = str.find("**", pos)) != std::string::npos) {
-            str.replace(pos, 2, " ^ ");
-            pos += 1;  // Move past the replaced character.
-        }
-        return "(" + str + ")";
-    }
 
-
-
-    std::string combineLikeTerms(std::string infix_expression) {
-        //py::scoped_interpreter guard{}; // start the interpreter
-
-        // py::object sympify = py::module::import("sympy").attr("sympify");
-        // py::object simpify = py::module()
-        py::object simplified_expression = sympify(infix_expression);
-        // convert to C++
-        std::string simplified_expression_str = py::str(simplified_expression);
-        // std::cout << simplified_expression_str << std::endl;
-
-        std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
-        // std::cout << ses2 << std::endl;
-
-        return py::str(ses2);
-    }
-
-    void testCombineLikeTerms() {
-        // std::string reduced_expression = "((2 * b) + (3 + 3)) - d"; // Assume you have a function to convert RPN to infix
-
-        std::string reduced_expression = "(((((7) + ((Y) + ((Y^2) * (Y))) + (((8) + (0.5)) - (Y))) + (((8) + (0.5)) + (Y))) + (((8) - (Y))) - (X)))";
-        std::cout << "Reduced expression (infix): " << reduced_expression << std::endl;
-
-        std::string combined_expression = combineLikeTerms(reduced_expression);
-        std::cout << "Combined like terms: " << combined_expression << std::endl;
-    }
 };
 
 
@@ -787,7 +700,6 @@ PYBIND11_MODULE(geneticSymbolicRegressionRN_MV, m) {
 
     py::class_<Training>(m, "Training")
         .def(py::init<>())
-        .def("testCombineLikeTerms", &Training::testCombineLikeTerms, "Test combine like terms")
         .def("set_matrix_x_from_numpy", &Training::set_matrix_x_from_numpy, "Set the matrix x from numpy array")
         .def("set_matrix_y_from_numpy", &Training::set_matrix_y_from_numpy, "Set the matrix y from numpy array")
         .def("set_binary_operators", &Training::set_binary_operators, "Set binary operators")
@@ -801,7 +713,6 @@ PYBIND11_MODULE(geneticSymbolicRegressionRN_MV, m) {
         .def("sorted_expressions", &Training::sorted_expressions, "function that sorts the expressions")
         .def("get_elite", &Training::get_elite, "function that gets the elite")
         .def("cross_expressions", &Training::cross_expressions, "function that crosses the expressions")
-        .def("merge_expressions", &Training::merge_expressions, "function that merges the expressions")
         .def("mutation", &Training::mutation, "function that mutates the expressions")
         .def("get_new_population", &Training::get_new_population, "function that gets the new population")
         .def("generate_random_expr", &Training::generate_random_expr, "function that generates a random expression")
