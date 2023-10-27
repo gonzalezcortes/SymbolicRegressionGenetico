@@ -58,7 +58,7 @@ ax.set_title('3D Surface Plot of f(x, y) = x^2 + y^2')
 """
 
 population_size = 100#100
-depth = 5
+depth = 3
 generations = 100 #100
 elite_perc = 0.10 #0.10
 mutation_prob = 0.10 #0.10

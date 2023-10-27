@@ -241,7 +241,7 @@ public:
         std::istringstream iss(infix); // create a string stream with the expression
 
         // std::cout << "infix RPN" << std::endl;
-        std::vector<std::string> rpn = infixToRPN2(iss); // convert the expression to RPN
+        std::vector<std::string> rpn = infixToRPN3(iss); // convert the expression to RPN
 
         //print the RPN
         /*
@@ -355,6 +355,7 @@ public:
     std::vector<std::string> cross_expressions(const std::vector<std::string>& elite_expressions) {
         std::vector<std::string> crossed_expressions;
         int loop_limit = elite_expressions.size() - 1;
+        std::string cross_mini;
 
         for (int i = 0; i < loop_limit; i++) {
             // print the elite expressions
@@ -367,7 +368,9 @@ public:
             
             
             std::cout << " crossed expression " << crossed_expr << std::endl;
-            std::string cross_mini = combineLikeTerms(crossed_expr);
+            
+            cross_mini = combineLikeTerms(crossed_expr);
+            
             std::cout << " crossed expression mini" << cross_mini << std::endl;
 
             // crossed_expressions.push_back(crossed_expr);
@@ -594,39 +597,27 @@ public:
     std::string replaceDoubleAsterisks(std::string str) {
         size_t pos = 0;
         while ((pos = str.find("**", pos)) != std::string::npos) {
-            str.replace(pos, 2, " ^ ");
+            str.replace(pos, 2, " ^ "); // Replace 2 characters at pos with " ^ "
             pos += 1;  // Move past the replaced character.
         }
         return "(" + str + ")";
+        //return str;
     }
 
     std::string combineLikeTerms(std::string infix_expression) {
         std::string simplified_expression_str;
-        try {
-            //py::scoped_interpreter guard{}; // start the interpreter
 
-            // py::object sympify = py::module::import("sympy").attr("sympify");
-            // py::object simpify = py::module()
-            py::object simplified_expression = sympify(infix_expression);
-            // convert to C++
-            simplified_expression_str = py::str(simplified_expression);
-            // std::cout << simplified_expression_str << std::endl;
+        //py::scoped_interpreter guard{}; // start the interpreter
 
+        // py::object sympify = py::module::import("sympy").attr("sympify");
+        // py::object simpify = py::module()
+        py::object simplified_expression = sympify(infix_expression);
+        // convert to C++
+        simplified_expression_str = py::str(simplified_expression);
+        // std::cout << simplified_expression_str << std::endl;
 
+        //std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
 
-
-        }
-        catch (py::error_already_set& e) {
-            // Handle exception (perhaps syntax error in expression)
-            std::cout << "Error: " << e.what() << std::endl;
-
-            // Call generate_random_expr(3) to get another expression string
-            // Here, I am assuming that generate_random_expr is a function that you have defined elsewhere
-            std::string simplified_expression_str = generate_random_expr(3);
-            std::cout << "simplified expression " << simplified_expression_str << std::endl;
-
-            //std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
-        }
         std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
         // std::cout << ses2 << std::endl;
         return py::str(ses2);

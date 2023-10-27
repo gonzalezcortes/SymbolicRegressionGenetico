@@ -1,5 +1,4 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+
 #include <iostream>
 #include <stack>
 #include <sstream>
@@ -9,26 +8,6 @@
 #include <string>
 
 
-std::string rpnToInfix(const std::vector<std::string>& rpn) {
-    std::stack<std::string> stack;
-    for (const auto& token : rpn) {
-        if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^") {
-            std::string op2 = stack.top(); stack.pop();
-            std::string op1 = stack.top(); stack.pop();
-            std::string expr = "(" + op1 + " " + token + " " + op2 + ")";
-            stack.push(expr);
-        }
-        else if (token == "sin" || token == "cos" || token == "exp" ) {
-            std::string op = stack.top(); stack.pop();
-            std::string expr = token + "(" + op + ")";
-            stack.push(expr);
-        }
-        else {
-            stack.push(token);
-        }
-    }
-    return stack.top();
-}
 
 
 int precedence2(const std::string& op) {
@@ -36,7 +15,7 @@ int precedence2(const std::string& op) {
         return 1;
     if (op == "^" || op == "*" || op == "/")
         return 2;
-    if (op == "sin" || op == "cos" || op == "exp" )
+    if (op == "sin" || op == "cos" || op == "exp")
         return 3;
     if (op == "u-")  // unary minus
         return 4;
@@ -58,6 +37,7 @@ std::string addSpaces(const std::string& str) {
     return spaced;
 }
 
+
 std::vector<std::string> infixToRPN3(std::istringstream& infix) {
     std::stack<std::string> operators;
     std::vector<std::string> rpn;
@@ -68,6 +48,47 @@ std::vector<std::string> infixToRPN3(std::istringstream& infix) {
         if (token == "-" && (lastToken == "(" || precedence2(lastToken) > 0)) {
             operators.push("-");
             rpn.push_back("0"); // Push 0 to handle unary negation
+        }
+        else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
+            while (!operators.empty() && precedence2(operators.top()) >= precedence2(token)) {
+                rpn.push_back(operators.top());
+                operators.pop();
+            }
+            operators.push(token);
+        }
+        else if (token == "(") {
+            operators.push(token);
+        }
+        else if (token == ")") {
+            while (!operators.empty() && operators.top() != "(") {
+                rpn.push_back(operators.top());
+                operators.pop();
+            }
+            operators.pop();
+        }
+        else {
+            rpn.push_back(token);
+        }
+        lastToken = token;
+    }
+
+    while (!operators.empty()) {
+        rpn.push_back(operators.top());
+        operators.pop();
+    }
+
+    return rpn;
+}
+
+std::vector<std::string> infixToRPN2(std::istringstream& infix) {
+    std::stack<std::string> operators;
+    std::vector<std::string> rpn;
+    std::string token;
+    std::string lastToken = "("; // Initialize to left parenthesis for unary negation checks
+
+    while (infix >> token) {
+        if (token == "-" && (lastToken == "(" || precedence2(lastToken) > 0)) {
+            operators.push("u-");
         }
         else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
             while (!operators.empty() && precedence2(operators.top()) >= precedence2(token)) {
@@ -120,6 +141,7 @@ double evaluateRPN2(const std::vector<std::string>& rpn) {
             else if (token == "^") result = std::pow(a, b);
             values.push(result);
         }
+
         else if (token == "u-") {
             double a = values.top(); values.pop();
             values.push(-a);
@@ -148,53 +170,29 @@ double evaluateRPN2(const std::vector<std::string>& rpn) {
     return values.top();
 }
 
-double perform_simplification(double a, double b, const std::string& op) {
-
-    if (op == "+") {
-        return a + b;
-    }
-    else if (op == "*") {
-        return a * b;
-    }
-    else if (op == "-") {
-        return a - b;
-    }
-    else if (op == "/") {
-        return a / b;
-    }
-
-    else {
-        std::cerr << "Invalid operator" << std::endl;
-        return 0;
-    }
-}
-
-bool isConvertibleToDouble(const std::string& str) {
-    try {
-        std::stod(str);
-        return true;
-    }
-    catch (const std::invalid_argument&) {
-        return false;
-    }
-}
 
 
 
 
 
+int main(){
 
-namespace py = pybind11;
 
-PYBIND11_MODULE(reverseNotation, m) {
-    m.def("precedence2", &precedence2, "A function that do reverse Notation");
-    m.def("addSpaces", &addSpaces, "A function that do reverse Notation");
+    std::string replaced_str = "2-(2+6)-(2-(2+2))"; // string with the replaced expression
+    std::string infix = addSpaces(replaced_str); // add spaces to the expression
+    std::cout << " infix " << infix << std::endl;
+    std::istringstream iss(infix); // create a string stream with the expression
+    std::vector<std::string> rpn = infixToRPN3(iss);
+    
+    for (auto i : rpn) {
+		std::cout << i << " ";
+	}
+    std::cout << std::endl;
 
-    m.def("infixToRPN3", &infixToRPN3, "A function that do reverse Notation");
-    m.def("evaluateRPN2", &evaluateRPN2, "A function that do reverse Notation");
+    // std::vector<std::string> rpn2 = { "0", "2", "sin","-" "2", "+" };
+    std::cout << evaluateRPN2(rpn) << std::endl;
 
-    m.def("perform_simplification", &perform_simplification, "A function that do reverse Notation");
-    m.def("isConvertibleToDouble", &isConvertibleToDouble, "A function that do reverse Notation");
+    return 0;
 
-    m.def("rpnToInfix", &rpnToInfix, "rpnToInfix");
+
 }
