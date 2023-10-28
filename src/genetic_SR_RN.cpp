@@ -120,7 +120,7 @@ std::vector<double> evaluate_fx_RPN2(std::string expression_str, std::vector<dou
     std::string infix = addSpaces(replaced_str);
     std::istringstream iss(infix);
 
-    std::vector<std::string> rpn = infixToRPN2(iss);
+    std::vector<std::string> rpn = infixToRPN3(iss);
     std::vector<double> evaluation_vector = evaluationArray(x_values, rpn);
 
     return evaluation_vector;
@@ -161,7 +161,7 @@ std::vector<double> evaluate_fx_RPN(std::string expression_str, std::vector<doub
         std::cout << "infix: " << infix << std::endl;
         
         std::istringstream iss(infix); //Constructs a istringstream object.
-        auto rpn = infixToRPN2(iss);
+        auto rpn = infixToRPN3(iss);
 
         //std::cout << "Reverse Polish Notation: ";
         //for (const auto& t : rpn) std::cout << t << ' ';

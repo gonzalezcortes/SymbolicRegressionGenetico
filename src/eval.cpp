@@ -37,7 +37,7 @@ std::string addSpaces(const std::string& str) {
     return spaced;
 }
 
-std::vector<std::string> infixToRPN2(std::istringstream& infix) {
+std::vector<std::string> infixToRPN3(std::istringstream& infix) {
     std::stack<std::string> operators;
     std::vector<std::string> rpn;
     std::string token;
@@ -136,7 +136,7 @@ int main(){
     std::string replaced_str = "- 2 + 2"; // string with the replaced expression
     std::string infix = addSpaces(replaced_str); // add spaces to the expression
     std::istringstream iss(infix); // create a string stream with the expression
-    std::vector<std::string> rpn = infixToRPN2(iss);
+    std::vector<std::string> rpn = infixToRPN3(iss);
     // print rpn
     for (auto i : rpn) {
 		std::cout << i << " ";

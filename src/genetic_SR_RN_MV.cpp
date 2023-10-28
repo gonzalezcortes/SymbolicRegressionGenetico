@@ -276,10 +276,13 @@ public:
         // from binary_operators pick one random operator
         int n_binary_operators = binary_operators.size();
         int indexReplace0 = rand() % n_binary_operators;
+
         std::string replaceStr0 = binary_operators[indexReplace0];
 
         std::vector<std::string> binary_operators_1;
         std::vector<std::string> binary_operators_2;
+
+        std::string child;
       
 
         for (const std::string& bop : binary_operators) {
@@ -303,7 +306,6 @@ public:
 			std::size_t pos1 = expr1.find(replaceStr1); 
 			std::size_t pos2 = expr2.find(replaceStr2);
 
-
             std::string term1a = expr1.substr(0, pos1);
             std::string term1b = expr1.substr(pos1 + 1);
                 
@@ -312,11 +314,30 @@ public:
 
             //std::cout << "\n" << std::endl;
 
-            //std::cout << "term1a " << pos1 << " " << term1a << " ";
-            //std::cout << "term2b " << pos2 << " " << term2b << " ";
-            //std::cout << std::endl;
+            if (term1a.back() == '(' || term2a.back() == '(') {
+                replaceStr0 = ' -';
+            }
             
-            std::string child = term1a + replaceStr0 + term2b;
+            // with 50% change
+            if ((double)rand() / (RAND_MAX) < 0.5) {
+
+
+
+                child = term1a + replaceStr0 + term2b;
+                // std::cout << "term1a: " << term1a << " ";
+                // std::cout << "term2b: " << term2b << " ";
+                // std::cout << "operator: " << replaceStr0 << " ";
+                // std::cout << std::endl;
+            }
+            else {
+
+
+                child = term2a + replaceStr0 + term1b;
+                // std::cout << "term2a: " << term2a << " ";
+                // std::cout << "term1b: " << term1b << " ";
+                // std::cout << "operator: " << replaceStr0 << " ";
+                // std::cout << std::endl;
+            }
 
             // count the '(' and ')' in the child
             int count_open = std::count(child.begin(), child.end(), '(');
@@ -360,18 +381,18 @@ public:
         for (int i = 0; i < loop_limit; i++) {
             // print the elite expressions
             
-            std::cout << "elite expression 1 " << elite_expressions[i] << " ";
-            std::cout << "elite expression 2 " << elite_expressions[i + 1] << " ";
-            std::cout << std::endl;
+            // std::cout << "elite expression 1: " << elite_expressions[i] << " ";
+            // std::cout << "elite expression 2: " << elite_expressions[i + 1] << " ";
+            // std::cout << std::endl;
 
             std::string crossed_expr = this -> merge_expressions2(elite_expressions[i], elite_expressions[i + 1]);
             
             
-            std::cout << " crossed expression " << crossed_expr << std::endl;
+            // std::cout << " crossed expression " << crossed_expr << std::endl;
             
             cross_mini = combineLikeTerms(crossed_expr);
             
-            std::cout << " crossed expression mini" << cross_mini << std::endl;
+            //std::cout << " crossed expression mini" << cross_mini << std::endl;
 
             // crossed_expressions.push_back(crossed_expr);
             crossed_expressions.push_back(cross_mini);
@@ -413,11 +434,11 @@ public:
         double mse_score;
 
         for (const auto& expr : expressions) {
-            std::cout << "Expression: " << expr << " ";
+            // std::cout << "Expression: " << expr << " ";
             std::vector<double> scores = this -> evaluate_fx_RPN2(expr);
             mse_score = mse(y_vector, scores);
             mse_and_expression.emplace_back(mse_score, expr);
-            std::cout << "mse: " << mse_score << std::endl;
+            // std::cout << "mse: " << mse_score << std::endl;
         }
 
         std::sort(mse_and_expression.begin(), mse_and_expression.end());
@@ -447,16 +468,21 @@ public:
     }
 
     std::string modify_expression(std::string expr) {
+
+        // std::cout << "Original expression " << expr << " ";
+
         int n_binary_operators = binary_operators.size();
         int n_unary_operators = unary_operators.size();
         int n_terminals = terminals.size();
         int n_constants = constants.size();
 
         int indexToSearch;
-        std::string toSearch;
         int indexReplace;
+
+        std::string toSearch;
         std::string replaceStr;
         std::size_t pos;
+        std::size_t lenString;
 
         //////////////////////
         // binary_operators //
@@ -468,9 +494,18 @@ public:
         indexReplace = rand() % n_binary_operators;
         replaceStr = binary_operators[indexReplace];
 
+        lenString = toSearch.length();
+
         pos = expr.find(toSearch);
+
         if (pos != std::string::npos) {
-            expr.replace(pos, 1, replaceStr);
+            // Check for special condition only if pos is greater than 0
+            if (pos > 0 && expr[pos] == '-' && expr[pos - 1] == '(') {
+                replaceStr = "-";
+            }
+            // The number of characters to replace could be the length of 'toSearch'
+            // but we're safely using lenString
+            expr.replace(pos, lenString, replaceStr);
         }
         //////////////////////
         // unary_operators //
@@ -482,67 +517,52 @@ public:
         indexReplace = rand() % n_unary_operators;
         replaceStr = unary_operators[indexReplace];
 
+        lenString = toSearch.length();
+
         pos = expr.find(toSearch);
         if (pos != std::string::npos) {
             // Replace it with "cos" function
-            expr.replace(pos, 3, replaceStr);
+            expr.replace(pos, lenString, replaceStr);
         }
-        //////////////////////
-        // terminals //
-        //////////////////////
-
-        /*
-        int n_terminals = terminals.size();
-        indexToSearch = rand() % n_terminals;
-        toSearch = terminals[indexToSearch];
-
-        indexReplace = rand() % n_terminals;
-        replaceStr = terminals[indexReplace];
-
-        pos = expr.find(toSearch);
-        if (pos != std::string::npos) {
-            expr.replace(pos, 1, replaceStr);
-        }
-        //////////////////////
-        // constants //
-        //////////////////////
-        int n_constants = constants.size();
-        indexToSearch = rand() % n_constants;
-        toSearch = constants[indexToSearch];
-
-        indexReplace = rand() % n_constants;
-        replaceStr = constants[indexReplace];
-
-        pos = expr.find(toSearch);
-        if (pos != std::string::npos) {
-            expr.replace(pos, 1, replaceStr);
-        }
-        */
+        ///////////////////////////
+        // terminals            //
+        //////////////////////////
 
         indexToSearch = std::rand() % n_terminals;
-        
         toSearch = terminals[indexToSearch];
-        // std::cout << "Searching for " << toSearch << std::endl;
+        
+        indexReplace = std::rand() % n_terminals;
+        replaceStr = terminals[indexReplace];
 
-        if (expr.find(toSearch) != std::string::npos) {
-            if ((double)rand() / (RAND_MAX) < 0.25) {
-                indexReplace = std::rand() % n_constants;
-                replaceStr = constants[indexReplace];
-                // std::cout << "Expression " << expr << std::endl;
-                // std::cout << "Replacing " << toSearch << " with " << replaceStr << std::endl;
-            }
-            else {
-                indexReplace = std::rand() % n_terminals;
-                replaceStr = terminals[indexReplace];
-                // std::cout << "Expression " << expr << std::endl;
-                // std::cout << "Replacing " << toSearch << " with " << replaceStr << std::endl;
-            }
-        }
+        lenString = toSearch.length();
 
         pos = expr.find(toSearch);
         if (pos != std::string::npos) {
-            expr.replace(pos, 1, replaceStr);
+            expr.replace(pos, lenString, replaceStr);
         }
+
+
+        ///////////////////////////
+        // constants            //
+        //////////////////////////
+
+        indexToSearch = std::rand() % n_constants;
+        toSearch = constants[indexToSearch];
+
+        indexReplace = std::rand() % n_constants;
+        replaceStr = constants[indexReplace];
+
+        // len of replaceStr
+        lenString = toSearch.length();
+
+        pos = expr.find(toSearch);
+        if (pos != std::string::npos) {
+            expr.replace(pos, lenString, replaceStr); //
+        }
+
+        ///////////////////////////
+
+        // std::cout << " Cambiada por " << expr << std::endl;
 
         return expr;
     }
@@ -644,7 +664,7 @@ public:
             
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
             // std::cout << "sorted" << std::endl;
-            std::cout << "get elite " << std::endl;
+            // std::cout << "get elite " << std::endl;
             elite = this -> get_elite(sorted_expressions_vec, elite_perc); 
             //print elite
             
@@ -657,7 +677,7 @@ public:
                 std::cout << "mse: " << mse_score2 << std::endl; // borrar
             }
             */
-            std::cout << "cross_expressions " << std::endl;
+            // std::cout << "cross_expressions " << std::endl;
             cross_elite = this -> cross_expressions(elite);
 
             // print size of the cross_elite in average
