@@ -19,7 +19,19 @@
 
 #include "reverseNotation.cpp"
 
+#include <chrono>
 namespace py = pybind11;
+
+
+#include <functional>
+
+template <typename Func, typename... Args>
+int64_t measureTime(Func&& func, Args&&... args) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    std::forward<Func>(func)(std::forward<Args>(args)...);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+}
 
 class Training {
 private:
@@ -149,9 +161,10 @@ public:
 	}
 
     std::string generate_random_expr(int depth) {
+
         if (depth > 0 && ((double)rand() / (RAND_MAX)) < 0.5) {
             // 50% chance to choose unary or binary operator
-            if ((double)rand() / (RAND_MAX) < 0.5) {
+            if ((double)rand() / (RAND_MAX) > 0.5) {
                 std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
                 return "(" + generate_random_expr(depth - 1) + " " + op + " " + generate_random_expr(depth - 1) + ")";
             }
@@ -626,20 +639,23 @@ public:
 
     std::string combineLikeTerms(std::string infix_expression) {
         std::string simplified_expression_str;
+        std::string ses2;
+        try {
+            py::object sympify = py::module::import("sympy").attr("sympify");
+            py::object simplified_expression = sympify(infix_expression);
+            simplified_expression_str = py::str(simplified_expression);
+            ses2 = replaceDoubleAsterisks(simplified_expression_str);
+        }
+        catch (py::error_already_set& e) {
+            // std::cerr << "Python error Binko : " << e.what() << std::endl;
 
-        //py::scoped_interpreter guard{}; // start the interpreter
+            int depth = random_int(3,10);
+            ses2 = generate_random_expr(depth);
 
-        // py::object sympify = py::module::import("sympy").attr("sympify");
-        // py::object simpify = py::module()
-        py::object simplified_expression = sympify(infix_expression);
-        // convert to C++
-        simplified_expression_str = py::str(simplified_expression);
-        // std::cout << simplified_expression_str << std::endl;
+        }
 
-        //std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
 
-        std::string ses2 = replaceDoubleAsterisks(simplified_expression_str);
-        // std::cout << ses2 << std::endl;
+        
         return py::str(ses2);
     }
 
@@ -652,54 +668,29 @@ public:
         std::vector<std::string> cross_elite;
         std::vector<std::string> new_population;
         std::vector<std::string> mutated_new_population;
+        
+
 
         for (int gen = 0; gen < generations; gen++) {
-
             
             std::cout << "Generation: " << gen << std::endl;
             
-            // for (const auto& token : expressions) { std::cout << token << '\n'; }
-            //std::cout << std::endl;
-            //std::cout << "##########" << std::endl;
-            
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
-            // std::cout << "sorted" << std::endl;
-            // std::cout << "get elite " << std::endl;
+
             elite = this -> get_elite(sorted_expressions_vec, elite_perc); 
-            //print elite
-            
-            /*
-            for(const auto& token : elite) {    
-                std::cout << token << ' ';
-                std::vector<double> scores2 = this->evaluate_fx_RPN2(token); // borrar
-               
-                double mse_score2 = mse(scores2, y_vector); // borrar
-                std::cout << "mse: " << mse_score2 << std::endl; // borrar
-            }
-            */
-            // std::cout << "cross_expressions " << std::endl;
+
             cross_elite = this -> cross_expressions(elite);
-
-            // print size of the cross_elite in average
-
             
             new_population = this -> get_new_population(elite, cross_elite, population_size, depth);
+
             mutated_new_population = this -> mutation(new_population, mutation_prob, elite_perc, grow_prob);
 
-            //expressions = simplify_all_expr(mutated_new_population); (not implemented yet)
             expressions = mutated_new_population;
 
-            // print the expressions
-            /*
-            std::cout << "Get mutated population" << std::endl;
-            for (const auto& token : expressions) {std::cout << token << '\n';}
-            std::cout << std::endl;
-            std::cout << "#####FIN#####" << std::endl;*/
 
         }
         std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions(expressions, metric);
 
-        // std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions_vec; ///////// for now, change
         return final_expression_vec;
     }
 

@@ -25,9 +25,6 @@ X = X.reshape(-1, 2)
 y = y.reshape(-1, 1)
 
 
-
-
-
 print(X.shape)
 
 trainer = gspRNMV.Training()
@@ -57,12 +54,12 @@ ax.set_title('3D Surface Plot of f(x, y) = x^2 + y^2')
 #plt.show()
 """
 
-population_size = 100#100
+population_size = 1000#100
 depth = 3
-generations = 200 #100
-elite_perc = 0.10 #0.10
+generations = 50 #100
+elite_perc = 0.20 #0.10
 mutation_prob = 0.1 #0.10
-grow_prob = 0.1 #0.001
+grow_prob = 0.01 #0.001
 metric = "mse"
 
 
@@ -77,9 +74,9 @@ trainer.set_matrix_y_from_numpy(y)
 ## Parameters
 
 trainer.set_binary_operators([ "+", "-", "*", "/", "^"]) #"+", "-", "*", "/", "^"
-trainer.set_unary_operators(["cos", "sin"])
+trainer.set_unary_operators(["cos"])
 #trainer.set_unary_operators(["sin"])
-trainer.set_terminals(["X","Y"])
+trainer.set_terminals(["XA","Y"])
 trainer.set_constants(["0.5","1","2","3","4","5","6","7","8"])
 
 #z = x^2 + y^2
