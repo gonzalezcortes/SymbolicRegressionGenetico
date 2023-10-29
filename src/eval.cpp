@@ -7,146 +7,77 @@
 #include <vector>
 #include <string>
 
+std::vector<std::string> binary_operators = {"+", "-", "*", "/" };
+std::vector<std::string> unary_operators = {};
+std::vector<std::string> terminals = { "X", "Y" };
+std::vector<std::string> constants = { "1" };
+
+int lenUnary = unary_operators.size();
+double unary_prob;
 
 
-
-int precedence2(const std::string& op) {
-    if (op == "+" || op == "-")
-        return 1;
-    if (op == "^" || op == "*" || op == "/")
-        return 2;
-    if (op == "sin" || op == "cos" || op == "exp")
-        return 3;
-    if (op == "u-")  // unary minus
-        return 4;
-    return -1;
+int random_int(int min, int max) {
+    return min + rand() % (max - min + 1);
 }
 
-std::string addSpaces(const std::string& str) {
-    std::string spaced;
-    for (char ch : str) {
-        if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^' || ch == '(' || ch == ')') {
-            spaced += ' ';
-            spaced += ch;
-            spaced += ' ';
+std::string generate_random_expr(int depth) {
+
+    if (depth > 0 && ((double)rand() / (RAND_MAX)) < 0.9) {
+        // 50% chance to choose unary or binary operator
+
+        if (lenUnary > 0) {
+            unary_prob = 0.1;
         }
         else {
-            spaced += ch;
+            unary_prob = 0;
         }
-    }
-    return spaced;
-}
 
-std::vector<std::string> infixToRPN3(std::istringstream& infix) {
-    std::stack<std::string> operators;
-    std::vector<std::string> rpn;
-    std::string token;
-    std::string lastToken = "("; // Initialize to left parenthesis for unary negation checks
-
-    while (infix >> token) {
-        if (token == "-" && (lastToken == "(" || precedence2(lastToken) > 0)) {
-            operators.push("u-");
-        }
-        else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
-            while (!operators.empty() && precedence2(operators.top()) >= precedence2(token)) {
-                rpn.push_back(operators.top());
-                operators.pop();
-            }
-            operators.push(token);
-        }
-        else if (token == "(") {
-            operators.push(token);
-        }
-        else if (token == ")") {
-            while (!operators.empty() && operators.top() != "(") {
-                rpn.push_back(operators.top());
-                operators.pop();
-            }
-            operators.pop();
+        if ((double)rand() / (RAND_MAX) > unary_prob) {
+            std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
+            return "(" + generate_random_expr(depth - 1) + " " + op + " " + generate_random_expr(depth - 1) + ")";
         }
         else {
-            rpn.push_back(token);
+            std::string op = unary_operators[random_int(0, unary_operators.size() - 1)];
+            return op + "(" + generate_random_expr(depth - 1) + ")";
         }
-        lastToken = token;
     }
-
-    while (!operators.empty()) {
-        rpn.push_back(operators.top());
-        operators.pop();
-    }
-
-    return rpn;
-}
-
-double evaluateRPN2(const std::vector<std::string>& rpn) {
-    std::stack<double> values;
-    for (const auto& token : rpn) {
-        if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^") {
-            double b = values.top(); values.pop();
-            double a = values.top(); values.pop();
-            double result = 0;
-            if (token == "+") result = a + b;
-            else if (token == "-") result = a - b;
-            else if (token == "*") result = a * b;
-            else if (token == "/") {
-                if (b == 0) {
-                    // std::cerr << "Division by zero\n";
-                    return -1;
-                }
-                result = a / b;
-            }
-            else if (token == "^") result = std::pow(a, b);
-            values.push(result);
+    else {
+        /// 50% chance to choose a constant or a terminal
+        if ((double)rand() / (RAND_MAX) < 0.5) {
+            return "(" + constants[random_int(0, constants.size() - 1)] + ")";
         }
-        else if (token == "u-") {
-            double a = values.top(); values.pop();
-            values.push(-a);
-        }
-
-        else if (token == "sin") {
-            double operand = values.top(); values.pop();
-            values.push(sin(operand));
-        }
-
-        else if (token == "cos") {
-            double operand = values.top(); values.pop();
-            values.push(cos(operand));
-        }
-
-        else if (token == "exp") {
-            double operand = values.top(); values.pop();
-            values.push(exp(operand));
-        }
-
-
         else {
-            values.push(std::stod(token));
+            return "(" + terminals[random_int(0, terminals.size() - 1)] + ")";
         }
     }
-    return values.top();
 }
 
-
-
+std::vector<std::string> create_initial_population(int pop_size, int depth) {
+    std::vector<std::string> population;
+    for (int i = 0; i < pop_size; i++) {
+        population.push_back(generate_random_expr(depth));
+    }
+    return population;
+}
 
 
 
 int main(){
 
-    std::string replaced_str = "- 2 + 2"; // string with the replaced expression
-    std::string infix = addSpaces(replaced_str); // add spaces to the expression
-    std::istringstream iss(infix); // create a string stream with the expression
-    std::vector<std::string> rpn = infixToRPN3(iss);
-    // print rpn
-    for (auto i : rpn) {
-		std::cout << i << " ";
-	}
-    std::cout << std::endl;
+    std::vector<std::string> ipp;
+    std::string single_expression;
 
+    int depth = 3;
+    int population_size = 10;
+    
+    single_expression = generate_random_expr(depth);
 
+    ipp = create_initial_population(population_size, depth);
+    
 
-    std::vector<std::string> rpn2 = { "0", "2", "sin","-" "2", "+" };
-    std::cout << evaluateRPN2(rpn2) << std::endl;
+    for (auto i : ipp) {
+        std::cout << i << std::endl;
+    }
 
     return 0;
 

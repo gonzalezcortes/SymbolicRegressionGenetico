@@ -23,15 +23,6 @@
 namespace py = pybind11;
 
 
-#include <functional>
-
-template <typename Func, typename... Args>
-int64_t measureTime(Func&& func, Args&&... args) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-    std::forward<Func>(func)(std::forward<Args>(args)...);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    return std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-}
 
 class Training {
 private:
@@ -48,6 +39,9 @@ private:
     std::vector<std::string> unary_operators;
     std::vector<std::string> terminals;
     std::vector<std::string> constants;
+
+    int lenUnary; 
+    double unary_prob;
 
     py::object sympify = py::module::import("sympy").attr("sympify");
     py::object simpify = py::module();
@@ -162,9 +156,18 @@ public:
 
     std::string generate_random_expr(int depth) {
 
-        if (depth > 0 && ((double)rand() / (RAND_MAX)) < 0.5) {
+        lenUnary = unary_operators.size();
+
+        if (lenUnary > 0) {
+            unary_prob = 0.1;
+        }
+        else {
+            unary_prob = 0;
+        }
+
+        if (depth > 0 && ((double)rand() / (RAND_MAX)) < 0.9) {
             // 50% chance to choose unary or binary operator
-            if ((double)rand() / (RAND_MAX) > 0.5) {
+            if ((double)rand() / (RAND_MAX) > unary_prob) {
                 std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
                 return "(" + generate_random_expr(depth - 1) + " " + op + " " + generate_random_expr(depth - 1) + ")";
             }
@@ -193,14 +196,6 @@ public:
     }
 
     std::vector<double> evaluationArray2(std::vector<std::string> rpn) {
-        
-        /*
-        std::cout << "rpn: ";
-        for (const auto& token : rpn) {
-            std::cout << token << ' ';
-        }
-        std::cout << std::endl;
-        */
 
         std::vector<double> evaluation_vector;
         evaluation_vector.reserve(rows_x);
@@ -265,6 +260,9 @@ public:
         */
         
         // std::cout << "Evaluation Array" << std::endl;
+
+
+
         std::vector<double> evaluation_vector = this -> evaluationArray2(rpn);
 
         return evaluation_vector;
@@ -280,6 +278,11 @@ public:
         for (size_t i = 0; i < elite_count; ++i) { // for each elite expression
             elite_expressions.push_back(sorted_expressions[i].second); // push the expression in the elite expressions vector
         }
+        /*
+        std::cout << "Elite: " << std::endl;
+        for (auto i : elite_expressions) {
+            std::cout << i << std::endl;
+        }*/
 
         return elite_expressions;
     }
@@ -405,7 +408,7 @@ public:
             
             cross_mini = combineLikeTerms(crossed_expr);
             
-            //std::cout << " crossed expression mini" << cross_mini << std::endl;
+            // std::cout << " crossed expression mini" << cross_mini << std::endl;
 
             // crossed_expressions.push_back(crossed_expr);
             crossed_expressions.push_back(cross_mini);
@@ -500,7 +503,8 @@ public:
         //////////////////////
         // binary_operators //
         //////////////////////
-        
+
+
         indexToSearch = rand() % n_binary_operators;
         toSearch = binary_operators[indexToSearch];
 
@@ -524,22 +528,26 @@ public:
         // unary_operators //
         //////////////////////
 
-        indexToSearch = rand() % n_unary_operators;
-        toSearch = unary_operators[indexToSearch];
+        if(n_unary_operators > 0){
+            indexToSearch = rand() % n_unary_operators;
+            toSearch = unary_operators[indexToSearch];
 
-        indexReplace = rand() % n_unary_operators;
-        replaceStr = unary_operators[indexReplace];
+            indexReplace = rand() % n_unary_operators;
+            replaceStr = unary_operators[indexReplace];
 
-        lenString = toSearch.length();
+            lenString = toSearch.length();
 
-        pos = expr.find(toSearch);
-        if (pos != std::string::npos) {
-            // Replace it with "cos" function
-            expr.replace(pos, lenString, replaceStr);
+            pos = expr.find(toSearch);
+            if (pos != std::string::npos) {
+                // Replace it with "cos" function
+                expr.replace(pos, lenString, replaceStr);
+            }
+
         }
         ///////////////////////////
         // terminals            //
         //////////////////////////
+
 
         indexToSearch = std::rand() % n_terminals;
         toSearch = terminals[indexToSearch];
@@ -558,6 +566,7 @@ public:
         ///////////////////////////
         // constants            //
         //////////////////////////
+
 
         indexToSearch = std::rand() % n_constants;
         toSearch = constants[indexToSearch];
@@ -588,8 +597,6 @@ public:
         std::string mutated_expr;
 
         //print new_expressions
-
-
 
         // Do not touch elite expressions
         size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * expressions.size()));
@@ -628,16 +635,26 @@ public:
     }
 
     std::string replaceDoubleAsterisks(std::string str) {
-        size_t pos = 0;
-        while ((pos = str.find("**", pos)) != std::string::npos) {
-            str.replace(pos, 2, " ^ "); // Replace 2 characters at pos with " ^ "
-            pos += 1;  // Move past the replaced character.
+
+        int depth = random_int(3, 10);
+
+        if (str.find("zoo") != std::string::npos) {
+            int depth = random_int(3, 10);
+            return generate_random_expr(depth);
         }
-        return "(" + str + ")";
-        //return str;
+        else{
+            size_t pos = 0;
+            while ((pos = str.find("**", pos)) != std::string::npos) {
+                str.replace(pos, 2, " ^ "); // Replace 2 characters at pos with " ^ "
+                pos += 3;  // Move past the replaced characters (" ^ ").
+            }
+            return "(" + str + ")";
+        }
     }
 
     std::string combineLikeTerms(std::string infix_expression) {
+
+
         std::string simplified_expression_str;
         std::string ses2;
         try {
@@ -647,20 +664,38 @@ public:
             ses2 = replaceDoubleAsterisks(simplified_expression_str);
         }
         catch (py::error_already_set& e) {
-            // std::cerr << "Python error Binko : " << e.what() << std::endl;
+            
 
             int depth = random_int(3,10);
             ses2 = generate_random_expr(depth);
 
         }
 
-
-        
         return py::str(ses2);
     }
 
+    /*
+    void early_stop(std::vector<std::pair<double, std::string>> sorted_expressions_vec, int gen) {
+        if (!sorted_expressions_vec.empty()) { // Checking that the vector is not empty
+            auto first_element = sorted_expressions_vec.front(); // Getting the first element
+            std::cout <<"Generation: " << gen <<" First element: (" << first_element.first << ", " << first_element.second << ")" << std::endl;
+            std::cout << first_element.first << std::endl;
+            if (first_element.first < 0.01) {
+                std::cout << "Break " << std::endl;
+                double first_elementA = sorted_expressions_vec.front().first;
+                std::cout << first_elementA  << std::endl;
+
+            }
+            
+        }
+        else {
+            std::cout << "The vector is empty." << std::endl;
+        }
+    }
+    */
+
     std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc,
-        double mutation_prob, double grow_prob) {
+        double mutation_prob, double grow_prob, double early_stop, bool verbose) {
 
         std::vector<std::string> expressions = this->create_initial_population(population_size, depth);
         std::vector<std::pair<double, std::string>> sorted_expressions_vec;
@@ -669,11 +704,16 @@ public:
         std::vector<std::string> new_population;
         std::vector<std::string> mutated_new_population;
         
+        double best_mse;
 
 
         for (int gen = 0; gen < generations; gen++) {
-            
-            std::cout << "Generation: " << gen << std::endl;
+            if(verbose==true){
+                std::cout << "Generation: " << gen << std::endl;
+                for (auto expr_d : expressions) {
+                    std::cout << expr_d << std::endl;
+                }
+            }
             
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
 
@@ -687,6 +727,11 @@ public:
 
             expressions = mutated_new_population;
 
+            best_mse = sorted_expressions_vec.front().first;
+
+            if (best_mse <= early_stop) {
+                break;
+            }
 
         }
         std::vector<std::pair<double, std::string>> final_expression_vec = sorted_expressions(expressions, metric);
