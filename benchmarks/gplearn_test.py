@@ -3,7 +3,7 @@ from gplearn.genetic import SymbolicRegressor
 import numpy as np
 import time
 
-data = np.genfromtxt("data/simple_dataset_2_variables.csv", delimiter=",", skip_header=1)
+data = np.genfromtxt("data/simple_dataset_3_variables.csv", delimiter=",", skip_header=1)
 X = data[:, 0:2]
 y = data[:, 2]
 

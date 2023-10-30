@@ -1,85 +1,84 @@
+#include <string>
+#include <vector>  
+#include <algorithm>
 
 #include <iostream>
-#include <stack>
-#include <sstream>
-#include <cmath>
-#include <cstdlib>
-#include <vector>
 #include <string>
+#include <stack>
 
-std::vector<std::string> binary_operators = {"+", "-", "*", "/" };
-std::vector<std::string> unary_operators = {};
-std::vector<std::string> terminals = { "X", "Y" };
-std::vector<std::string> constants = { "1" };
-
-int lenUnary = unary_operators.size();
-double unary_prob;
-
-
-int random_int(int min, int max) {
-    return min + rand() % (max - min + 1);
+std::string reverse(const std::string& input) {
+    std::string reversed;
+    for (std::size_t i = input.length(); i > 0; i--) {
+        reversed += input[i - 1];
+    }
+    return reversed;
 }
 
-std::string generate_random_expr(int depth) {
+std::string expand_parenthesis(const std::string& expr) {
+    std::stack<std::string> operands;
+    std::stack<char> operators;
+    std::string output = "";
+    std::string temp = "";
+    std::vector<char> binary_operators = { '+', '-', '*', '/', '^' };
 
-    if (depth > 0 && ((double)rand() / (RAND_MAX)) < 0.9) {
-        // 50% chance to choose unary or binary operator
-
-        if (lenUnary > 0) {
-            unary_prob = 0.1;
-        }
-        else {
-            unary_prob = 0;
-        }
-
-        if ((double)rand() / (RAND_MAX) > unary_prob) {
-            std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
-            return "(" + generate_random_expr(depth - 1) + " " + op + " " + generate_random_expr(depth - 1) + ")";
-        }
-        else {
-            std::string op = unary_operators[random_int(0, unary_operators.size() - 1)];
-            return op + "(" + generate_random_expr(depth - 1) + ")";
+    for (int i = 0; i < expr.length(); i++) {
+        char ch = expr[i];
+        if (ch == '(' && i > 0 && expr[i - 1] == '*') {
+            for (int j = i; j < expr.length(); j++) {
+                if (expr[j] == ')') {
+                    break;
+                }
+                else {
+                    if (std::find(binary_operators.begin(), binary_operators.end(), expr[j]) != binary_operators.end()) {
+                        operators.push(expr[j]);
+                    }
+                    else {
+                        operands.push(std::string(1, expr[j]));
+                    }
+                }
+            }
+            for (int k = i-1; k >= 0; k--)
+            {
+                if (std::find(binary_operators.begin(), binary_operators.end(), expr[k]) != binary_operators.end() && expr[k] != '-' && expr[k] != '*') {
+					//temp += expr[k];
+					break;
+				}
+                else {
+					temp += expr[k];
+                    std::cout << expr[k] << std::endl;
+				}
+                
+			}
         }
     }
-    else {
-        /// 50% chance to choose a constant or a terminal
-        if ((double)rand() / (RAND_MAX) < 0.5) {
-            return "(" + constants[random_int(0, constants.size() - 1)] + ")";
-        }
-        else {
-            return "(" + terminals[random_int(0, terminals.size() - 1)] + ")";
-        }
-    }
-}
-
-std::vector<std::string> create_initial_population(int pop_size, int depth) {
-    std::vector<std::string> population;
-    for (int i = 0; i < pop_size; i++) {
-        population.push_back(generate_random_expr(depth));
-    }
-    return population;
-}
-
-
-
-int main(){
-
-    std::vector<std::string> ipp;
-    std::string single_expression;
-
-    int depth = 3;
-    int population_size = 10;
     
-    single_expression = generate_random_expr(depth);
+    //Evaluate each the stack
+    //get the inverse of a string temp
 
-    ipp = create_initial_population(population_size, depth);
+    // std::cout << "temp: " << temp << std::endl;
+
+    std::string inverse_temp = reverse(temp);
+    // std::cout << "inverse_temp: " << inverse_temp << std::endl;
+
+    int len_operands = operands.size();
+    int len_operators = operators.size();
+
+    for (int i = 0; i < len_operands; i++) {
+		std::cout << "Ope: " << operands.top() << std::endl;
+		operands.pop();
+	}
+
+    // print the inverse of temp
     
 
-    for (auto i : ipp) {
-        std::cout << i << std::endl;
-    }
 
+
+    return temp;
+}
+
+int main() {
+    std::string expr = "-2*X*(X - Y)"; // "-2*X*(X - Y) - 2*X - Y - 69"
+    std::string expanded = expand_parenthesis(expr);
+    std::cout << "Expanded expression: " << expanded << std::endl;
     return 0;
-
-
 }

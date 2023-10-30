@@ -30,7 +30,20 @@ z_flat = z.flatten()
 dataset = np.stack((x_flat, y_flat, z_flat), axis=1)
 np.savetxt("data/simple_dataset_2_variables.csv", dataset, delimiter=",", header="x,y,z", comments="")
 
+######## simple_dataset_3_variables.csv ########
+
+x = np.linspace(-10, 10, 50)
+y = np.linspace(-10, 10, 50)
+x, y = np.meshgrid(x, y)
+
+z = -3*x**2 - y**2 + 2*x*y
+
+x_flat = x.flatten()
+y_flat = y.flatten()
+z_flat = z.flatten()
 
 
+dataset = np.stack((x_flat, y_flat, z_flat), axis=1)
+np.savetxt("data/simple_dataset_3_variables.csv", dataset, delimiter=",", header="x,y,z", comments="")
 
 

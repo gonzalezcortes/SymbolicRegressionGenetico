@@ -18,7 +18,7 @@ std::string rpnToInfix(const std::vector<std::string>& rpn) {
             std::string expr = "(" + op1 + " " + token + " " + op2 + ")";
             stack.push(expr);
         }
-        else if (token == "sin" || token == "cos" || token == "exp" ) {
+        else if (token == "sin" || token == "cos" || token == "exp" || token == "sqrt") {
             std::string op = stack.top(); stack.pop();
             std::string expr = token + "(" + op + ")";
             stack.push(expr);
@@ -40,6 +40,8 @@ int precedence2(const std::string& op) {
         return 3;
     if (op == "u-")  // unary minus
         return 4;
+    if (op == "sqrt")  // unary minus
+        return 5;
     return -1;
 }
 
@@ -69,7 +71,7 @@ std::vector<std::string> infixToRPN3(std::istringstream& infix) {
             operators.push("-");
             rpn.push_back("0"); // Push 0 to handle unary negation
         }
-        else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp") {
+        else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos" || token == "exp" || token == "sqrt") {
             while (!operators.empty() && precedence2(operators.top()) >= precedence2(token)) {
                 rpn.push_back(operators.top());
                 operators.pop();
@@ -139,6 +141,11 @@ double evaluateRPN2(const std::vector<std::string>& rpn) {
             double operand = values.top(); values.pop();
             values.push(exp(operand));
         }
+        
+        else if (token == "sqrt") {
+			double operand = values.top(); values.pop();
+			values.push(sqrt(operand));
+		}
 
 
         else {
