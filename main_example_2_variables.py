@@ -32,9 +32,9 @@ trainer = gspRNMV.Training()
 
 population_size = 100#100
 depth = 3
-generations = 500 #100
+generations = 1000 #100
 elite_perc = 0.2 #0.10
-mutation_prob = 0.5 #0.10
+mutation_prob = 0.3 #0.10
 grow_prob = 0.1 #0.001
 metric = "mse"
 verbose = False

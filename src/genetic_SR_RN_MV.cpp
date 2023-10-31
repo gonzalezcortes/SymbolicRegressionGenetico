@@ -46,6 +46,11 @@ private:
     py::object sympify = py::module::import("sympy").attr("sympify");
     py::object simpify = py::module();
 
+    // py::object simpi py::module::import("sympy").attr("expand");
+    // py::object simpi = py::module();
+
+    //py::object simpi = py::module::import("sympy").attr("expand")
+
     double prune_prob = 0.1;
 
 public:
@@ -701,9 +706,9 @@ public:
         std::string simplified_expression_str;
         std::string ses2;
         try {
-            py::object sympify = py::module::import("sympy").attr("sympify");
             py::object simplified_expression = sympify(infix_expression);
-            simplified_expression_str = py::str(simplified_expression);
+            py::object expanded_expression = simplified_expression.attr("expand")();
+            simplified_expression_str = py::str(expanded_expression);
             ses2 = replaceDoubleAsterisks(simplified_expression_str);
         }
         catch (py::error_already_set& e) {
@@ -715,6 +720,27 @@ public:
         }
 
         return py::str(ses2);
+    }
+
+    std::string expander(std::string infix_expression) {
+        std::string simplified_expression_str;
+        std::string expanded_expression_str;
+        std::string ses1;
+        std::string ses2;
+
+        try {
+            py::object simplified_expression = sympify(infix_expression);
+            py::object expanded_expression = simplified_expression.attr("expand")();  
+            simplified_expression_str = py::str(expanded_expression);
+            ses2 = replaceDoubleAsterisks(simplified_expression_str);
+
+        }
+        catch (py::error_already_set& e) {
+            int depth = random_int(3, 10);
+            ses2 = generate_random_expr(depth);
+        }
+
+        return ses2;  // Changed from py::str(ses2) to just ses2
     }
 
     void clearVectors(std::vector<std::string>& elite, std::vector<std::string>& cross_elite,
@@ -743,6 +769,18 @@ public:
                     std::string ty2 = remove_term_right(first_element.second);
                     std::cout << "Remove term left: " << balance_parent(ty) << std::endl;
                     std::cout << "Remove term right: " << balance_parent(ty2) << std::endl;
+        		}
+        else {
+			std::cout << "The vector is empty." << std::endl;
+		}
+	}
+
+
+    void expander_viewer(std::vector<std::pair<double, std::string>> sorted_expressions_vec) {
+		if (!sorted_expressions_vec.empty()) { // Checking that the vector is not empty
+        			auto first_element = sorted_expressions_vec.front(); // Getting the first element
+                    std::string ty = expander(first_element.second);
+                    std::cout << "Expanded: " << balance_parent(ty) << std::endl;
         		}
         else {
 			std::cout << "The vector is empty." << std::endl;
@@ -785,9 +823,11 @@ public:
 
             best_mse = sorted_expressions_vec.front().first;
 
-            // elite_viewer(sorted_expressions_vec, gen);
+            elite_viewer(sorted_expressions_vec, gen);
 
             // remove_test(sorted_expressions_vec);
+
+            // expander_viewer(sorted_expressions_vec);
 
             if (best_mse <= early_stop) {
                 break;
