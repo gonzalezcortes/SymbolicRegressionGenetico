@@ -34,8 +34,9 @@ population_size = 100#100
 depth = 3
 generations = 1000 #100
 elite_perc = 0.2 #0.10
-mutation_prob = 0.3 #0.10
+mutation_prob = 0.5 #0.10
 grow_prob = 0.1 #0.001
+prune_prob = 0.1
 metric = "mse"
 verbose = False
 early_stop = 0.01
@@ -63,7 +64,7 @@ trainer.set_constants(["0","1"])
 
 ## Training
 
-sorted_expressions_2 = trainer.genetic_training(population_size, depth, generations, metric, elite_perc, mutation_prob, grow_prob, early_stop, verbose)
+sorted_expressions_2 = trainer.genetic_training(population_size, depth, generations, metric, elite_perc, mutation_prob, grow_prob, prune_prob, early_stop, verbose)
 print("Running time", time.time()-t0)
 
 

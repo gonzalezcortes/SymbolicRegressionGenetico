@@ -26,3 +26,10 @@ This dataset contains three columns:
 - `x`: Represents the x-coordinate.
 - `y`: Represents the y-coordinate.
 - `z`: Represents the z-coordinate, calculated using the equation $` z = x^2 + y^2  `$.
+
+#### simple_dataset_3_variables.csv
+
+This dataset contains three columns:
+- `x`: Represents the x-coordinate.
+- `y`: Represents the y-coordinate.
+- `z`: Represents the z-coordinate, calculated using the equation $`z = -3*x**2 - y**2 + 2*x*y

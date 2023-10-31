@@ -51,7 +51,7 @@ private:
 
     //py::object simpi = py::module::import("sympy").attr("expand")
 
-    double prune_prob = 0.1;
+    
 
 public:
 
@@ -138,6 +138,14 @@ public:
         return min + rand() % (max - min + 1);
     }
 
+    int random_int2(int min, int max) {
+        return min + (rand() % static_cast<int>(max - min + 1));
+    }
+
+    double get_random() {
+        return static_cast<double>(rand()) / RAND_MAX;
+    }
+
     void print_operators() {
         std::cout << " Binary operators: " << std::endl;
         for (const auto& op : binary_operators) {
@@ -179,10 +187,6 @@ public:
         return expr;
     }
 
-    int random_int2(int min, int max) {
-        return min + (rand() % static_cast<int>(max - min + 1));
-    }
-
     std::string generate_random_expr(int depth) {
         int lenUnary = unary_operators.size();
         double unary_prob = lenUnary > 0 ? 0.1 : 0.0;
@@ -206,7 +210,6 @@ public:
             }
         }
     }
-
 
     std::vector<std::string> create_initial_population(int pop_size, int depth) {
         std::vector<std::string> population;
@@ -627,60 +630,56 @@ public:
         return expr;
     }
 
-    std::vector<std::string> mutation(const std::vector<std::string>& expressions, double mutation_prob, double elite_perc, double grow_prob) {
+    std::vector<std::string> mutation2(const std::vector<std::string>& expressions, double mutation_prob, double elite_perc, double grow_prob, double prune_prob) {
 
         int population_size = expressions.size();
         std::vector<std::string> new_expressions;
         new_expressions.reserve(population_size);
         std::string mutated_expr;
 
-
         // Do not touch elite expressions
         size_t elite_count = static_cast<size_t>(std::ceil(elite_perc * expressions.size()));
         for (size_t i = 0; i < elite_count; ++i) {
-            new_expressions.push_back(expressions[i]);
+            new_expressions.emplace_back(expressions[i]);
         }
 
         // Apply mutation with a certain probability
         for (size_t i = elite_count; i < population_size; ++i) {
-            double rand_prob = ((double)rand() / (RAND_MAX));
+            mutated_expr = expressions[i];
 
+            // std::cout << "Before: " << mutated_expr << " ";
 
-            // mutation if prob is lower than mutation_prob
-            if (rand_prob < mutation_prob) {
-                mutated_expr = modify_expression(expressions[i]);
-                new_expressions.push_back(mutated_expr);
+            double rand_mutation = ((double)rand() / (RAND_MAX));
+            if (rand_mutation < mutation_prob) {
+                mutated_expr = modify_expression(mutated_expr);
             }
-            else if (rand_prob < prune_prob) {
-                if ((double)rand() / (RAND_MAX) < 0.5) {
-                    mutated_expr = add_term_left(expressions[i]);
-                    new_expressions.push_back(mutated_expr);
+            
+            double rand_prune = ((double)rand() / (RAND_MAX));
+            if (rand_prune < prune_prob && mutated_expr.size() > 3) {
+                if (((double)rand() / (RAND_MAX)) < 0.5) {
+                    mutated_expr = balance_parent(remove_term_left(mutated_expr));
                 }
                 else {
-                    mutated_expr = add_term_right(expressions[i]);
-                    new_expressions.push_back(mutated_expr);
+                    mutated_expr = balance_parent(remove_term_right(mutated_expr));
                 }
-            }
-            else if (rand_prob < grow_prob) {
-                if ((double)rand() / (RAND_MAX) < 0.5) {
-                    mutated_expr = add_term_left(expressions[i]);
-                    new_expressions.push_back(mutated_expr);
-                }
-                else {
-                    mutated_expr = add_term_right(expressions[i]);
-                    new_expressions.push_back(mutated_expr);
-                }
-            }
-            else {
-                // mutated_expr = expressions[i];
-                new_expressions.push_back(expressions[i]);
             }
 
-            // std::cout << "mutada a : " << mutated_expr << std::endl;
+            double rand_grow = ((double)rand() / (RAND_MAX));
+            if (rand_grow < grow_prob) {
+                if (((double)rand() / (RAND_MAX)) < 0.5) {
+                    mutated_expr = add_term_left(mutated_expr);
+                }
+                else {
+                    mutated_expr = add_term_right(mutated_expr);
+                }
+            }
+            // std::cout << "After: " << mutated_expr << std::endl;
+            new_expressions.emplace_back(mutated_expr);
         }
 
         return new_expressions;
     }
+
 
     std::string replaceDoubleAsterisks(std::string str) {
 
@@ -788,7 +787,7 @@ public:
 	}
 
     std::vector<std::pair<double, std::string>> genetic_training(int population_size, int depth, int generations, std::string metric, double elite_perc,
-        double mutation_prob, double grow_prob, double early_stop, bool verbose) {
+        double mutation_prob, double grow_prob, double prune_prob, double early_stop, bool verbose) {
 
         std::vector<std::string> expressions = this->create_initial_population(population_size, depth);
         std::vector<std::pair<double, std::string>> sorted_expressions_vec;
@@ -816,7 +815,7 @@ public:
 
             new_population = this -> get_new_population(elite, cross_elite, population_size, depth);
 
-            mutated_new_population = this -> mutation(new_population, mutation_prob, elite_perc, grow_prob);
+            mutated_new_population = this -> mutation2(new_population, mutation_prob, elite_perc, grow_prob, prune_prob);
 
             expressions = std::move(mutated_new_population);
 
@@ -862,7 +861,7 @@ PYBIND11_MODULE(geneticSymbolicRegressionRN_MV, m) {
         .def("sorted_expressions", &Training::sorted_expressions, "function that sorts the expressions")
         .def("get_elite", &Training::get_elite, "function that gets the elite")
         .def("cross_expressions", &Training::cross_expressions, "function that crosses the expressions")
-        .def("mutation", &Training::mutation, "function that mutates the expressions")
+        .def("mutation2", &Training::mutation2, "function that mutates the expressions")
         .def("get_new_population", &Training::get_new_population, "function that gets the new population")
         .def("generate_random_expr", &Training::generate_random_expr, "function that generates a random expression")
         .def("create_initial_population", &Training::create_initial_population, "function that creates the initial population")

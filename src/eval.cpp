@@ -1,84 +1,145 @@
-#include <string>
-#include <vector>  
-#include <algorithm>
-
 #include <iostream>
-#include <string>
-#include <stack>
+#include <cstdlib>
+#include <ctime>
 
-std::string reverse(const std::string& input) {
-    std::string reversed;
-    for (std::size_t i = input.length(); i > 0; i--) {
-        reversed += input[i - 1];
-    }
-    return reversed;
+#include <chrono>
+
+void print_mutation() {
+    std::cout << "mutation" << std::endl;
+}
+void print_prune_left() {
+	std::cout << "prune left" << std::endl;
+}
+void print_prune_right() {
+	std::cout << "prune right" << std::endl;
+}
+void print_grow_left() {
+	std::cout << "grow left" << std::endl;
+}
+void print_grow_right() {
+	std::cout << "grow right" << std::endl;
+}
+void print_no_mutation() {
+	std::cout << "no mutation" << std::endl;
 }
 
-std::string expand_parenthesis(const std::string& expr) {
-    std::stack<std::string> operands;
-    std::stack<char> operators;
-    std::string output = "";
-    std::string temp = "";
-    std::vector<char> binary_operators = { '+', '-', '*', '/', '^' };
 
-    for (int i = 0; i < expr.length(); i++) {
-        char ch = expr[i];
-        if (ch == '(' && i > 0 && expr[i - 1] == '*') {
-            for (int j = i; j < expr.length(); j++) {
-                if (expr[j] == ')') {
-                    break;
-                }
-                else {
-                    if (std::find(binary_operators.begin(), binary_operators.end(), expr[j]) != binary_operators.end()) {
-                        operators.push(expr[j]);
-                    }
-                    else {
-                        operands.push(std::string(1, expr[j]));
-                    }
-                }
-            }
-            for (int k = i-1; k >= 0; k--)
-            {
-                if (std::find(binary_operators.begin(), binary_operators.end(), expr[k]) != binary_operators.end() && expr[k] != '-' && expr[k] != '*') {
-					//temp += expr[k];
-					break;
-				}
-                else {
-					temp += expr[k];
-                    std::cout << expr[k] << std::endl;
-				}
-                
-			}
-        }
+double get_random() {
+    return static_cast<double>(rand()) / RAND_MAX;
+}
+
+void handle_operation(double random_val, double probability, void (*action_true)(), void (*action_false)()) {
+    if (random_val < probability) {
+        action_true();
     }
-    
-    //Evaluate each the stack
-    //get the inverse of a string temp
+    else {
+        action_false();
+    }
+}
 
-    // std::cout << "temp: " << temp << std::endl;
+void handle_binary_operation(double random_val, void (*action_left)(), void (*action_right)()) {
+    if (random_val < 0.5) {
+        action_left();
+    }
+    else {
+        action_right();
+    }
+}
 
-    std::string inverse_temp = reverse(temp);
-    // std::cout << "inverse_temp: " << inverse_temp << std::endl;
+void crossover(double mutation_prob, double prune_prob, double grow_prob, double crossover_prob) {
 
-    int len_operands = operands.size();
-    int len_operators = operators.size();
+    for (int i = 0; i < 8; i++) {
 
-    for (int i = 0; i < len_operands; i++) {
-		std::cout << "Ope: " << operands.top() << std::endl;
-		operands.pop();
-	}
+        double rand_mutation = ((double)rand() / (RAND_MAX));
+        double rand_prune = ((double)rand() / (RAND_MAX));
 
-    // print the inverse of temp
-    
+        double rand_grow = ((double)rand() / (RAND_MAX));
+        double rand_crossover = ((double)rand() / (RAND_MAX));
 
 
+        if (rand_mutation < mutation_prob) {
+            print_mutation();
+        }
+        else {
+            print_no_mutation();
+        }
+        if (rand_prune < prune_prob) {
+            if (((double)rand() / (RAND_MAX)) < 0.5) {
+                print_prune_left();
+            }
+            else {
+                print_prune_right();
+            }
+        }
+        else {
+            std::cout << "no prune" << std::endl;
+        }
 
-    return temp;
+        if (rand_grow < grow_prob) {
+            if (((double)rand() / (RAND_MAX)) < 0.5) {
+                print_grow_left();
+            }
+            else {
+                print_grow_right();
+            }
+        }
+        else { std::cout << "no grow" << std::endl;; }
+
+        if (rand_crossover < crossover_prob) {
+            std::cout << "crossover" << std::endl;
+        }
+        else { std::cout << "no crossover" << std::endl; }
+    }
+}
+
+
+void crossover2(double mutation_prob, double prune_prob, double grow_prob, double crossover_prob) {
+
+    for(int i = 0; i < 8; i++){
+
+        handle_operation(get_random(), mutation_prob, print_mutation, print_no_mutation);
+
+        if (get_random() < prune_prob) {
+            handle_binary_operation(get_random(), print_prune_left, print_prune_right);
+        }
+        else {
+            std::cout << "no prune" << std::endl;
+            return; 
+        }
+
+        handle_operation(get_random(), grow_prob,
+            []() { handle_binary_operation(get_random(), print_grow_left, print_grow_right); },
+            []() { std::cout << "no grow" << std::endl; }
+        );
+
+        handle_operation(get_random(), crossover_prob,
+            []() { std::cout << "crossover" << std::endl; },
+            []() { std::cout << "no crossover" << std::endl; }
+        );
+    }
 }
 
 int main() {
-    std::string expr = "-2*X*(X - Y)"; // "-2*X*(X - Y) - 2*X - Y - 69"
-    std::string expanded = expand_parenthesis(expr);
-    std::cout << "Expanded expression: " << expanded << std::endl;
+    srand(time(0));  // Seed the random number generator
+
+    double mutation_prob = 0.1;
+    double prune_prob = 0.1;
+    double grow_prob = 0.1;
+    double crossover_prob = 0.1;
+
+
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 100; i++) {
+        std::cout << "iteration " << i << std::endl;
+        crossover2(mutation_prob, prune_prob, grow_prob, crossover_prob);
+        std::cout << " " << std::endl;
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+
+    std::cout << duration.count() << std::endl;
     return 0;
 }
