@@ -451,15 +451,14 @@ public:
         double mse_score;
 
         for (const auto& expr : expressions) {
-            // std::cout << "Expression: " << expr << " ";
+            // std::cout << "Expression: " << expr << " // expr_size" << expr.size() << " ";
             std::vector<double> scores = this -> evaluate_fx_RPN2(expr);
             mse_score = mse(y_vector, scores);
             mse_and_expression.emplace_back(mse_score, expr);
             // std::cout << "mse: " << mse_score << std::endl;
         }
-
         std::sort(mse_and_expression.begin(), mse_and_expression.end());
-
+        //std::cout << " sorted " << std::endl;
         return mse_and_expression;
 
     }
@@ -472,6 +471,16 @@ public:
         std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
 
         return "(" + new_term + " " + op + " " + expr + ")";
+    }
+
+    std::string add_term_right(std::string expr) {
+        // Generate a new term with depth 1 (either a unary operation or a simple binary operation)
+        std::string new_term = generate_random_expr(1);
+
+        // Add the new term to the existing expression using a random operator
+        std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
+
+        return "(" + expr + " " + op + " " + new_term + ")";
     }
 
     std::string remove_term_left(std::string expr) {
@@ -512,16 +521,6 @@ public:
 
         // Otherwise, remove the last term along with the preceding operator
         return expr.substr(0, second_last_space);
-    }
-
-    std::string add_term_right(std::string expr) {
-        // Generate a new term with depth 1 (either a unary operation or a simple binary operation)
-        std::string new_term = generate_random_expr(1);
-
-        // Add the new term to the existing expression using a random operator
-        std::string op = binary_operators[random_int(0, binary_operators.size() - 1)];
-
-        return "(" + expr + " " + op + " " + new_term + ")";
     }
 
     std::string modify_expression(std::string expr) {
@@ -655,7 +654,7 @@ public:
             }
             
             double rand_prune = ((double)rand() / (RAND_MAX));
-            if (rand_prune < prune_prob && mutated_expr.size() > 3) {
+            if (rand_prune < prune_prob && mutated_expr.size() > 8) {
                 if (((double)rand() / (RAND_MAX)) < 0.5) {
                     mutated_expr = balance_parent(remove_term_left(mutated_expr));
                 }
@@ -679,7 +678,6 @@ public:
 
         return new_expressions;
     }
-
 
     std::string replaceDoubleAsterisks(std::string str) {
 
@@ -705,9 +703,12 @@ public:
         std::string simplified_expression_str;
         std::string ses2;
         try {
+            // std::cout << "infix_expression: " << infix_expression << " ";
             py::object simplified_expression = sympify(infix_expression);
+            // std::cout << "simplified_expression: " << py::str(simplified_expression) << " ";
             py::object expanded_expression = simplified_expression.attr("expand")();
             simplified_expression_str = py::str(expanded_expression);
+            // std::cout << "simplified_expression_str: " << simplified_expression_str << std::endl;
             ses2 = replaceDoubleAsterisks(simplified_expression_str);
         }
         catch (py::error_already_set& e) {
@@ -774,7 +775,6 @@ public:
 		}
 	}
 
-
     void expander_viewer(std::vector<std::pair<double, std::string>> sorted_expressions_vec) {
 		if (!sorted_expressions_vec.empty()) { // Checking that the vector is not empty
         			auto first_element = sorted_expressions_vec.front(); // Getting the first element
@@ -807,20 +807,23 @@ public:
                 }
             }
             
+            // std::cout << "sorted_expressions_vec" << " ";
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
 
+            // std::cout << "get_elite" << " ";
             elite = this -> get_elite(sorted_expressions_vec, elite_perc); 
 
+            // std::cout << "cross_expressions" << " ";
             cross_elite = this -> cross_expressions(elite);
 
+            // std::cout << "get_new_population" << " ";
             new_population = this -> get_new_population(elite, cross_elite, population_size, depth);
 
+            // std::cout << "mutation2" << " ";
             mutated_new_population = this -> mutation2(new_population, mutation_prob, elite_perc, grow_prob, prune_prob);
 
+
             expressions = std::move(mutated_new_population);
-
-
-            best_mse = sorted_expressions_vec.front().first;
 
             elite_viewer(sorted_expressions_vec, gen);
 
@@ -828,9 +831,11 @@ public:
 
             // expander_viewer(sorted_expressions_vec);
 
-            if (best_mse <= early_stop) {
+            
+            if (!sorted_expressions_vec.empty() && sorted_expressions_vec.front().first <= early_stop) { // If the best_mse (First element) is < than n break.
                 break;
             }
+
 
             clearVectors(elite, cross_elite, new_population, mutated_new_population);
 
