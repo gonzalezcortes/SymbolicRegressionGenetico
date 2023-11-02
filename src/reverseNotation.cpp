@@ -8,6 +8,9 @@
 #include <vector>
 #include <string>
 
+#include <unordered_map> // evaluateRPN3
+#include <functional> // evaluateRPN3
+
 
 std::string rpnToInfix(const std::vector<std::string>& rpn) {
     std::stack<std::string> stack;
@@ -101,6 +104,82 @@ std::vector<std::string> infixToRPN3(std::istringstream& infix) {
 
     return rpn;
 }
+
+
+double evaluateRPN3(const std::vector<std::string>& rpn) {
+    std::stack<double> values;
+    std::map<std::string, std::function<double(double, double)>> ops = {
+        {"+", [](double a, double b) { return a + b; }},
+        {"-", [](double a, double b) { return a - b; }},
+        {"*", [](double a, double b) { return a * b; }},
+        {"/", [](double a, double b) { return b != 0 ? a / b : -1; }},  // Returning -1 in case of division by zero
+        {"^", [](double a, double b) { return std::pow(a, b); }}
+    };
+
+    for (const auto& token : rpn) {
+        if (ops.find(token) != ops.end()) {
+            if (values.size() < 2) return -1;  // Error code for insufficient operands
+            double b = values.top(); values.pop();
+            double a = values.top(); values.pop();
+            double result = ops[token](a, b);
+            if (token == "/" && b == 0) return -1;  // Check for division by zero result
+            values.push(result);
+        }
+        else if (token == "u-") {
+            if (values.empty()) return -1;  // Error code for stack underflow
+            double a = values.top(); values.pop();
+            values.push(-a);
+        }
+        else {
+            values.push(std::stod(token));
+        }
+    }
+
+    if (values.size() != 1) return -1;  // Error code for invalid expression
+    return values.top();
+}
+
+double evaluateRPN2B(const std::vector<std::string>& rpn) {
+    // it is not faster than evaluateRPN2
+    std::stack<double> values;
+
+    std::map<std::string, std::function<double(double, double)>> ops = {
+        {"+", [](double a, double b) { return a + b; }},
+        {"-", [](double a, double b) { return a - b; }},
+        {"*", [](double a, double b) { return a * b; }},
+        {"/", [](double a, double b) { return a / b; }},
+        {"^", [](double a, double b) { return std::pow(a, b); }}
+    };
+
+    std::map<std::string, std::function<double(double)>> ops_single = {
+        {"u-", [](double operand) { return -operand; }},
+        {"sin", [](double operand) { return sin(operand); }},
+		{"cos", [](double operand) { return cos(operand); }},
+		{"exp", [](double operand) { return exp(operand); }},
+		{"sqrt", [](double operand) { return sqrt(operand); }}
+    };
+
+    for (const auto& token : rpn) {
+        if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^") {
+            double b = values.top(); values.pop();
+            double a = values.top(); values.pop();
+            double result = 0;
+            if (token == "/" && b == 0) return -1;
+            result = ops[token](a, b);
+            values.push(result);
+        }
+        else if (token == "u-" || token == "sin" || token == "cos" || token == "exp" || token == "sqrt") {
+            double operand = values.top(); values.pop();
+            double result1 = ops_single[token](operand);
+            values.push(result1);
+        }
+        else {
+            values.push(std::stod(token));
+        }
+    }
+    return values.top();
+}
+
 
 double evaluateRPN2(const std::vector<std::string>& rpn) {
     std::stack<double> values;

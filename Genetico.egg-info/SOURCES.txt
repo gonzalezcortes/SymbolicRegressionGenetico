@@ -10,4 +10,5 @@ src/genetic_SR.cpp
 src/genetic_SR_RN.cpp
 src/genetic_SR_RN_MV.cpp
 src/metrics.cpp
+src/parallel_test.cpp
 src/reverseNotation.cpp

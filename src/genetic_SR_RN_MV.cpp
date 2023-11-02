@@ -14,12 +14,17 @@
 #include <limits>
 #include <sys/types.h>
 
+#include <unordered_map>
+
+#include <cmath> // for std::isnan
+
 #include "./external/exprtk.hpp"
 #include "metrics.cpp" // metric from mse
 
 #include "reverseNotation.cpp"
 
 #include <chrono>
+
 namespace py = pybind11;
 
 
@@ -220,6 +225,44 @@ public:
     }
 
     std::vector<double> evaluationArray2(std::vector<std::string> rpn) {
+
+        std::vector<double> evaluation_vector;
+        evaluation_vector.reserve(rows_x);
+
+        int n_terminals = terminals.size();
+
+        for (int i = 0; i < rows_x; i++) {
+            std::vector<std::string> rpn_copy = rpn;  // Create a fresh copy each time
+            for (std::string& token : rpn_copy) {
+                auto it = std::find(terminals.begin(), terminals.end(), token);
+                if (it != terminals.end()) {
+                    int position = it - terminals.begin();
+                    double value = X_array[i][position];
+                    // std::cout << token << " changed by " << value << '\n';
+                    token = std::to_string(value);
+
+                }
+            }
+            /*
+            std::cout << "new rpn (rpn_copy): ";
+            for (const auto& token : rpn_copy) {
+                std::cout << token << ' ';
+            }*/
+
+            double result = evaluateRPN2(rpn_copy); // evaluate the RPN
+            if (std::isnan(result)) { // if the result is nan, set it to infinity
+                result = std::numeric_limits<double>::infinity();
+            }
+            evaluation_vector.push_back(result); // push the result in the evaluation vector
+
+            // std::cout << result << " ";
+            // std::cout << std::endl;
+        }
+        return evaluation_vector;
+    }
+
+
+    std::vector<double> evaluationArray2a(std::vector<std::string> rpn) {
 
         std::vector<double> evaluation_vector;
         evaluation_vector.reserve(rows_x);
@@ -452,8 +495,22 @@ public:
 
         for (const auto& expr : expressions) {
             // std::cout << "Expression: " << expr << " // expr_size" << expr.size() << " ";
+            // auto start1 = std::chrono::high_resolution_clock::now();
+
             std::vector<double> scores = this -> evaluate_fx_RPN2(expr);
+
+            // auto stop1 = std::chrono::high_resolution_clock::now();
+            // auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(stop1 - start1);
+            // std::cout << "scores: " << duration1.count() << " microseconds" << std::endl;
+
+            // auto start2 = std::chrono::high_resolution_clock::now();
+
             mse_score = mse(y_vector, scores);
+
+            // auto stop2 = std::chrono::high_resolution_clock::now();
+            // auto duration2 = std::chrono::duration_cast<std::chrono::microseconds>(stop2 - start2);
+            // std::cout << "mse: " << duration2.count() << " microseconds" << std::endl;
+
             mse_and_expression.emplace_back(mse_score, expr);
             // std::cout << "mse: " << mse_score << std::endl;
         }
@@ -631,6 +688,9 @@ public:
 
     std::vector<std::string> mutation2(const std::vector<std::string>& expressions, double mutation_prob, double elite_perc, double grow_prob, double prune_prob) {
 
+        int lenUnary = unary_operators.size();
+        double prune_size = lenUnary > 0 ? 8 : 5;
+
         int population_size = expressions.size();
         std::vector<std::string> new_expressions;
         new_expressions.reserve(population_size);
@@ -654,7 +714,11 @@ public:
             }
             
             double rand_prune = ((double)rand() / (RAND_MAX));
-            if (rand_prune < prune_prob && mutated_expr.size() > 8) {
+            // if len ura > 0 size ...
+
+            
+
+            if (rand_prune < prune_prob && mutated_expr.size() > prune_size) {
                 if (((double)rand() / (RAND_MAX)) < 0.5) {
                     mutated_expr = balance_parent(remove_term_left(mutated_expr));
                 }
@@ -673,7 +737,13 @@ public:
                 }
             }
             // std::cout << "After: " << mutated_expr << std::endl;
-            new_expressions.emplace_back(mutated_expr);
+            if (mutated_expr.size() > 0) {
+                new_expressions.emplace_back(mutated_expr);
+			}
+            else {
+                new_expressions.emplace_back(generate_random_expr(3));
+            }
+            
         }
 
         return new_expressions;
@@ -800,27 +870,41 @@ public:
 
 
         for (int gen = 0; gen < generations; gen++) {
-            if(verbose==true){
-                std::cout << "Generation: " << gen << std::endl;
-                for (auto expr_d : expressions) {
-                    std::cout << expr_d << std::endl;
-                }
-            }
-            
-            // std::cout << "sorted_expressions_vec" << " ";
+           
+            std::cout << "sorted_expressions_vec" << " ";
+            auto start1 = std::chrono::high_resolution_clock::now();
             sorted_expressions_vec = this->sorted_expressions(expressions, metric);
+            auto stop1 = std::chrono::high_resolution_clock::now();
+            auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(stop1 - start1);
+            std::cout << "sorted_expressions: " << duration1.count() << " microseconds" << std::endl;
 
-            // std::cout << "get_elite" << " ";
-            elite = this -> get_elite(sorted_expressions_vec, elite_perc); 
+            std::cout << "get_elite" << " ";
+            auto start2 = std::chrono::high_resolution_clock::now();
+            elite = this -> get_elite(sorted_expressions_vec, elite_perc);
+            auto stop2 = std::chrono::high_resolution_clock::now();
+            auto duration2 = std::chrono::duration_cast<std::chrono::microseconds>(stop2 - start2);
+            std::cout << "get_elite: " << duration2.count() << " microseconds" << std::endl;
 
-            // std::cout << "cross_expressions" << " ";
+            std::cout << "cross_expressions" << " ";
+            auto start3 = std::chrono::high_resolution_clock::now();
             cross_elite = this -> cross_expressions(elite);
+            auto stop3 = std::chrono::high_resolution_clock::now();
+            auto duration3 = std::chrono::duration_cast<std::chrono::microseconds>(stop3 - start3);
+            std::cout << "cross_expressions: " << duration3.count() << " microseconds" << std::endl;
 
-            // std::cout << "get_new_population" << " ";
+            std::cout << "get_new_population" << " ";
+            auto start4 = std::chrono::high_resolution_clock::now();
             new_population = this -> get_new_population(elite, cross_elite, population_size, depth);
+            auto stop4 = std::chrono::high_resolution_clock::now();
+            auto duration4 = std::chrono::duration_cast<std::chrono::microseconds>(stop4 - start4);
+            std::cout << "get_new_population: " << duration4.count() << " microseconds" << std::endl;
 
-            // std::cout << "mutation2" << " ";
+            std::cout << "mutation2" << " ";
+            auto start5 = std::chrono::high_resolution_clock::now();
             mutated_new_population = this -> mutation2(new_population, mutation_prob, elite_perc, grow_prob, prune_prob);
+            auto stop5 = std::chrono::high_resolution_clock::now();
+            auto duration5 = std::chrono::duration_cast<std::chrono::microseconds>(stop5 - start5);
+            std::cout << "mutation2: " << duration5.count() << " microseconds" << std::endl;
 
 
             expressions = std::move(mutated_new_population);

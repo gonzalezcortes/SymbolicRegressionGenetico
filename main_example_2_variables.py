@@ -9,7 +9,7 @@ np.random.seed(8)
 
 
 
-data = np.genfromtxt("data/simple_dataset_3_variables.csv", delimiter=",", skip_header=1)
+data = np.genfromtxt("data/simple_dataset_2_variables.csv", delimiter=",", skip_header=1)
 
 #data = np.genfromtxt("data/simple_dataset_1_variable_A.csv", delimiter=",", skip_header=1)
 
@@ -32,11 +32,11 @@ trainer = gspRNMV.Training()
 
 population_size = 100#100
 depth = 3
-generations = 1000 #100
+generations = 100 #100
 elite_perc = 0.2 #0.2
-mutation_prob = 0.7 #0.5
-grow_prob = 0.25 #0.1
-prune_prob = 0.25 #0.1
+mutation_prob = 0.5 #0.5
+grow_prob = 0.1 #0.1
+prune_prob = 0.1 #0.1
 metric = "mse"
 verbose = False
 early_stop = 0.01
@@ -52,7 +52,7 @@ trainer.set_matrix_y_from_numpy(y)
 ## Parameters
 
 trainer.set_binary_operators([ "+", "-", "*", "/","^"]) #"+", "-", "*", "/", "^"
-#trainer.set_unary_operators([])
+#trainer.set_unary_operators(["sin","cos"])
 trainer.set_terminals(["X","Y"])
 trainer.set_constants(["0","1"])
 

@@ -12,6 +12,8 @@ def add_init_pybind11(cls):
             __builtins__.__NUMPY_SETUP__ = False
             import pybind11
             self.include_dirs.append(pybind11.get_include())
+
+
     return build_ext_subclass
 
 ext_modules = [
@@ -52,9 +54,17 @@ ext_modules = [
         ['src/genetic_SR_RN_MV.cpp'],
         include_dirs=[],
         language='c++',
-        extra_compile_args=["-std=c++11"],
-        extra_link_args=['-shared']
-        )  
+        extra_compile_args=["-std=c++11", "-fopenmp"],
+        extra_link_args=['-shared', '-fopenmp']
+        ),
+    Extension(
+        'genetico.parallel_test',
+        ['src/parallel_test.cpp'],
+        include_dirs=['src/external'],
+        language='c++',
+        extra_compile_args=["-std=c++11", "-fopenmp"],
+        extra_link_args=['-static-libgcc', '-static-libstdc++', '-fopenmp']
+        )      
 ]
 
 setup(
