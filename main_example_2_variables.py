@@ -10,7 +10,7 @@ np.random.seed(8)
 
 
 data = np.genfromtxt("data/simple_dataset_2_variables.csv", delimiter=",", skip_header=1)
-
+ 
 #data = np.genfromtxt("data/simple_dataset_1_variable_A.csv", delimiter=",", skip_header=1)
 
 X = data[:, 0:2]
